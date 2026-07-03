@@ -66,6 +66,7 @@ export default function MaplibreMap({
 }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const resizeObserver = useRef(null);
   const markers = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
@@ -96,6 +97,18 @@ export default function MaplibreMap({
     m.on('load', () => setMapLoaded(true));
     m.on('error', () => setMapError(true));
 
+    requestAnimationFrame(() => m.resize());
+    if ('ResizeObserver' in window) {
+      resizeObserver.current = new ResizeObserver(() => {
+        requestAnimationFrame(() => m.resize());
+      });
+      resizeObserver.current.observe(mapContainer.current);
+    }
+
+    const handleResize = () => m.resize();
+    window.addEventListener('orientationchange', handleResize);
+    window.addEventListener('resize', handleResize);
+
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     m.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
@@ -111,6 +124,10 @@ export default function MaplibreMap({
     }
 
     return () => {
+      resizeObserver.current?.disconnect();
+      resizeObserver.current = null;
+      window.removeEventListener('orientationchange', handleResize);
+      window.removeEventListener('resize', handleResize);
       m.remove();
       map.current = null;
     };
@@ -183,9 +200,8 @@ export default function MaplibreMap({
   }, [liveIncidents, mapLoaded]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* Map container — MapLibre needs a real pixel height, ensured by parent */}
-      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 320 }}>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%', minHeight: 'inherit' }} />
 
       {/* Loading overlay */}
       {!mapLoaded && !mapError && (

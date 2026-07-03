@@ -4,6 +4,7 @@ import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import { useAuth } from '../context/AuthContext';
 import { api, socket } from '../utils/api';
+import { prepareReportMedia } from '../utils/media';
 
 export default function CitizenApp() {
   const { user, logout } = useAuth();
@@ -18,6 +19,7 @@ export default function CitizenApp() {
   const [reportLocation, setReportLocation] = useState(null);
   const [reportMedia, setReportMedia] = useState([]);
   const [reporting, setReporting] = useState(false);
+  const [preparingMedia, setPreparingMedia] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(null);
   const [showLocationConfirm, setShowLocationConfirm] = useState(false);
@@ -212,8 +214,22 @@ export default function CitizenApp() {
     setShowLocationConfirm(false);
   };
 
-  const handleMediaChange = (e) => {
-    setReportMedia([...e.target.files]);
+  const appendMediaFiles = async (files, replace = false) => {
+    const selectedFiles = Array.from(files || []);
+    if (selectedFiles.length === 0) return;
+
+    setPreparingMedia(true);
+    try {
+      const prepared = await prepareReportMedia(selectedFiles);
+      setReportMedia((prev) => replace ? prepared : [...prev, ...prepared]);
+    } finally {
+      setPreparingMedia(false);
+    }
+  };
+
+  const handleMediaChange = async (e) => {
+    await appendMediaFiles(e.target.files, true);
+    e.target.value = '';
   };
 
   const removeMedia = (index) => {
@@ -225,12 +241,8 @@ export default function CitizenApp() {
     document.getElementById('camera-capture').click();
   };
 
-  const handleCameraCapture = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setReportMedia(prev => [...prev, ...files]);
-    }
-    // Reset input so same photo can be re-selected
+  const handleCameraCapture = async (e) => {
+    await appendMediaFiles(e.target.files);
     e.target.value = '';
   };
 
@@ -1581,6 +1593,12 @@ export default function CitizenApp() {
                     ))}
                   </div>
                 )}
+                {preparingMedia && (
+                  <p style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, color: darkMode ? '#94a3b8' : '#64748b', fontSize: 13, fontWeight: 700 }}>
+                    <Loader2 className="animate-spin" size={16} />
+                    Optimizing media...
+                  </p>
+                )}
               </div>
 
               <div className="responsive-row" style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
@@ -1617,7 +1635,7 @@ export default function CitizenApp() {
                 </button>
                 <button
                   type="submit"
-                  disabled={reporting}
+                  disabled={reporting || preparingMedia}
                   style={{
                     flex: 1,
                     padding: '12px 16px',
@@ -1626,7 +1644,7 @@ export default function CitizenApp() {
                     color: 'white',
                     fontWeight: 700,
                     border: 'none',
-                    cursor: reporting ? 'not-allowed' : 'pointer',
+                    cursor: reporting || preparingMedia ? 'not-allowed' : 'pointer',
                     boxShadow: 'var(--ndrs-shadow)',
                     transition: 'all 0.2s ease',
                     display: 'flex',
@@ -1635,18 +1653,18 @@ export default function CitizenApp() {
                     gap: 8,
                   }}
                   onMouseEnter={(e) => {
-                    if (!reporting) {
+                    if (!reporting && !preparingMedia) {
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!reporting) {
+                    if (!reporting && !preparingMedia) {
                       e.currentTarget.style.transform = 'translateY(0)';
                     }
                   }}
                 >
-                  {reporting ? <Loader2 className="animate-spin" size={20} /> : null}
-                  {reporting ? 'Submitting...' : 'Submit Report'}
+                  {(reporting || preparingMedia) ? <Loader2 className="animate-spin" size={20} /> : null}
+                  {preparingMedia ? 'Optimizing...' : reporting ? 'Submitting...' : 'Submit Report'}
                 </button>
               </div>
             </form>
