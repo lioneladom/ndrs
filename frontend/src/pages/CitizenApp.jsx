@@ -147,35 +147,63 @@ export default function CitizenApp() {
       setLocating(false);
       return;
     }
+
+    const onSuccess = (position) => {
+      const loc = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      setTempLocation(loc);
+      setShowLocationConfirm(true);
+      setLocating(false);
+    };
+
+    const onError = (error) => {
+      // If high-accuracy (GPS) failed, retry with low accuracy (network/cell)
+      if (error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE) {
+        navigator.geolocation.getCurrentPosition(
+          onSuccess,
+          (fallbackError) => {
+            let message;
+            switch (fallbackError.code) {
+              case fallbackError.PERMISSION_DENIED:
+                message = 'Location permission denied. Please enable it in your browser/phone settings: Settings → Apps → Browser → Permissions → Location.';
+                break;
+              case fallbackError.POSITION_UNAVAILABLE:
+                message = 'Location unavailable. Please check that Location Services are enabled on your phone.';
+                break;
+              default:
+                message = 'Could not get your location. Please try again or check your phone\'s location settings.';
+            }
+            setLocationError(message);
+            setLocating(false);
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+        );
+        return;
+      }
+      let message;
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          message = 'Location permission denied. Please enable it in your browser/phone settings: Settings → Apps → Browser → Permissions → Location.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = 'Location unavailable. Please ensure Location Services are enabled on your phone.';
+          break;
+        case error.TIMEOUT:
+          message = 'Location request timed out. Moving to a location with better signal may help.';
+          break;
+        default:
+          message = 'Could not get your location. Please try again.';
+      }
+      setLocationError(message);
+      setLocating(false);
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const loc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        setTempLocation(loc);
-        setShowLocationConfirm(true);
-        setLocating(false);
-      },
-      (error) => {
-        let message;
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            message = 'User denied the request for Geolocation';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            message = 'Location information is unavailable';
-            break;
-          case error.TIMEOUT:
-            message = 'The request to get user location timed out';
-            break;
-          default:
-            message = 'An unknown error occurred';
-        }
-        setLocationError(message);
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      onSuccess,
+      onError,
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   };
 
@@ -192,44 +220,18 @@ export default function CitizenApp() {
     setReportMedia(reportMedia.filter((_, i) => i !== index));
   };
 
-  const capturePhoto = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' },
-        audio: false
-      });
-      
-      // Create video element to preview
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.play();
-      
-      // Create canvas to capture frame
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Wait for video to load
-      await new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0);
-          
-          // Convert canvas to blob
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-              setReportMedia(prev => [...prev, file]);
-            }
-            // Stop the stream
-            stream.getTracks().forEach(track => track.stop());
-            resolve();
-          }, 'image/jpeg', 0.8);
-        };
-      });
-    } catch (err) {
-      alert('Failed to access camera: ' + err.message);
+  // Trigger the hidden camera input (opens native camera app on mobile)
+  const capturePhoto = () => {
+    document.getElementById('camera-capture').click();
+  };
+
+  const handleCameraCapture = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setReportMedia(prev => [...prev, ...files]);
     }
+    // Reset input so same photo can be re-selected
+    e.target.value = '';
   };
 
   const getIncidentIconStyle = (incident) => {
@@ -1521,6 +1523,15 @@ export default function CitizenApp() {
                   multiple
                   accept="image/*,video/*"
                   onChange={handleMediaChange}
+                  style={{ display: 'none' }}
+                />
+                {/* Native camera input — opens camera app on mobile */}
+                <input
+                  id="camera-capture"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleCameraCapture}
                   style={{ display: 'none' }}
                 />
                 {reportMedia.length > 0 && (

@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { 
   Flame, Droplets, HeartPulse, Car, ShieldAlert, AlertTriangle, 
-  Mountain, Wind, Zap, MapPin, HandHelping
+  Mountain, Wind, Zap, MapPin, Loader2
 } from 'lucide-react';
 import ReactDOMServer from 'react-dom/server';
 
@@ -37,6 +37,10 @@ const INCIDENT_COLORS = {
 
 const isResolved = (incident) => incident?.status?.toLowerCase() === 'resolved';
 
+// OpenFreeMap — fast, free, no API key, mobile-optimised
+const TILE_STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/liberty';
+const TILE_STYLE_DARK  = 'https://tiles.openfreemap.org/styles/dark';
+
 export default function MaplibreMap({
   center = [5.6037, -0.1870],
   zoom = 13,
@@ -51,6 +55,7 @@ export default function MaplibreMap({
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const liveIncidents = useMemo(
@@ -61,23 +66,25 @@ export default function MaplibreMap({
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    // Initialize MapLibre map
+    setMapLoaded(false);
+
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: darkMode 
-        ? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json' 
-        : 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+      style: darkMode ? TILE_STYLE_DARK : TILE_STYLE_LIGHT,
       center: [center[1], center[0]], // [lng, lat]
       zoom: zoom,
       dragRotate: false,
       pitchWithRotate: false,
-      touchPitch: false
+      touchPitch: false,
+      maxTileCacheSize: 20, // Keep memory footprint small on mobile
     });
+
+    map.current.on('load', () => setMapLoaded(true));
 
     // Add navigation controls
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    // Get user location
+    // Get user location (low-accuracy = uses network, much faster on mobile)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -86,54 +93,45 @@ export default function MaplibreMap({
           map.current?.setCenter(loc);
         },
         () => {},
-        { enableHighAccuracy: true, maximumAge: 5000 }
+        { enableHighAccuracy: false, maximumAge: 30000 }
       );
     }
 
-    // Cleanup
     return () => {
       map.current?.remove();
+      map.current = null;
     };
   }, [darkMode]);
 
-  // Update markers when incidents change
+  // Update markers when incidents/mapLoaded changes
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !mapLoaded) return;
 
-    // Remove old markers
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
-    // Add incident markers
     liveIncidents.forEach(incident => {
       const el = document.createElement('div');
       el.className = 'incident-marker';
-      el.style.width = '48px';
-      el.style.height = '48px';
-      el.style.borderRadius = '50%';
-      el.style.border = '3px solid white';
-      el.style.backgroundColor = INCIDENT_COLORS[incident.type] || INCIDENT_COLORS.default;
-      el.style.boxShadow = '0 4px 14px rgba(0,0,0,0.3)';
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      el.style.cursor = 'pointer';
+      el.style.cssText = `
+        width:48px;height:48px;border-radius:50%;border:3px solid white;
+        background-color:${INCIDENT_COLORS[incident.type] || INCIDENT_COLORS.default};
+        box-shadow:0 4px 14px rgba(0,0,0,0.3);
+        display:flex;align-items:center;justify-content:center;cursor:pointer;
+      `;
       el.innerHTML = ReactDOMServer.renderToString(getIncidentIcon(incident.type));
 
-      const marker = new maplibregl.Marker({
-        element: el,
-        anchor: 'center'
-      })
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([incident.location.lng, incident.location.lat])
         .setPopup(
           new maplibregl.Popup({ offset: 25 }).setHTML(`
-            <div style="min-width: 200px; color: ${darkMode ? '#f1f5f9' : '#0f172a'}; background-color: ${darkMode ? '#1e293b' : 'white'}; padding: 12px; border-radius: 12px;">
-              <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 900;">${incident.type}</h3>
-              <p style="margin: 0 0 8px 0; font-size: 14px; color: ${darkMode ? '#94a3b8' : '#64748b'}; line-height: 1.5;">${incident.description}</p>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <span style="padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background-color: ${incident.status === 'New' ? '#fee2e2' : '#dbeafe'}; color: ${incident.status === 'New' ? '#d92b2b' : '#174ea6'};">${incident.status}</span>
-                ${incident.severity ? `<span style="padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background-color: ${incident.severity === 'CRITICAL' ? '#fee2e2' : '#fef3c7'}; color: ${incident.severity === 'CRITICAL' ? '#d92b2b' : '#92400e'};">${incident.severity}</span>` : ''}
-                ${incident.media && incident.media.length > 0 ? `<span style="padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background-color: #dbeafe; color: #174ea6;">${incident.media.length} attachment${incident.media.length > 1 ? 's' : ''}</span>` : ''}
+            <div style="min-width:200px;color:${darkMode ? '#f1f5f9' : '#0f172a'};background:${darkMode ? '#1e293b' : 'white'};padding:12px;border-radius:12px;">
+              <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:900;">${incident.type}</h3>
+              <p style="margin:0 0 8px 0;font-size:14px;color:${darkMode ? '#94a3b8' : '#64748b'};line-height:1.5;">${incident.description}</p>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:${incident.status === 'New' ? '#fee2e2' : '#dbeafe'};color:${incident.status === 'New' ? '#d92b2b' : '#174ea6'};">${incident.status}</span>
+                ${incident.severity ? `<span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:${incident.severity === 'CRITICAL' ? '#fee2e2' : '#fef3c7'};color:${incident.severity === 'CRITICAL' ? '#d92b2b' : '#92400e'};">${incident.severity}</span>` : ''}
+                ${incident.media?.length ? `<span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#dbeafe;color:#174ea6;">${incident.media.length} file${incident.media.length > 1 ? 's' : ''}</span>` : ''}
               </div>
             </div>
           `)
@@ -142,33 +140,22 @@ export default function MaplibreMap({
 
       el.addEventListener('click', () => {
         setSelectedMarker(incident.id);
-        onMarkerClick && onMarkerClick(incident);
+        onMarkerClick?.(incident);
       });
 
       markers.current.push(marker);
     });
 
-    // If we have a selected location for report confirmation, add a draggable marker
     if (onLocationSelect && selectedLocation) {
       const confirmEl = document.createElement('div');
-      confirmEl.className = 'confirm-location-marker';
-      confirmEl.style.width = '56px';
-      confirmEl.style.height = '56px';
-      confirmEl.style.borderRadius = '50%';
-      confirmEl.style.border = '4px solid white';
-      confirmEl.style.backgroundColor = '#dc2626';
-      confirmEl.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.5)';
-      confirmEl.style.display = 'flex';
-      confirmEl.style.alignItems = 'center';
-      confirmEl.style.justifyContent = 'center';
+      confirmEl.style.cssText = `
+        width:56px;height:56px;border-radius:50%;border:4px solid white;
+        background:#dc2626;box-shadow:0 6px 20px rgba(220,38,38,0.5);
+        display:flex;align-items:center;justify-content:center;cursor:grab;
+      `;
       confirmEl.innerHTML = ReactDOMServer.renderToString(<MapPin size={28} color="white" />);
-      confirmEl.style.cursor = 'grab';
 
-      const confirmMarker = new maplibregl.Marker({
-        element: confirmEl,
-        anchor: 'center',
-        draggable: true
-      })
+      const confirmMarker = new maplibregl.Marker({ element: confirmEl, anchor: 'center', draggable: true })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(map.current);
 
@@ -179,33 +166,35 @@ export default function MaplibreMap({
 
       markers.current.push(confirmMarker);
     }
-  }, [liveIncidents, selectedLocation, onLocationSelect, darkMode]);
+  }, [liveIncidents, selectedLocation, onLocationSelect, darkMode, mapLoaded]);
 
-  // Fit bounds if we have incidents
+  // Fit bounds to incidents
   useEffect(() => {
-    if (!map.current || liveIncidents.length === 0) return;
-
+    if (!map.current || !mapLoaded || liveIncidents.length === 0) return;
     const bounds = new maplibregl.LngLatBounds();
-    liveIncidents.forEach(incident => {
-      bounds.extend([incident.location.lng, incident.location.lat]);
-    });
-
-    map.current.fitBounds(bounds, {
-      padding: 100,
-      maxZoom: 15,
-      duration: 1000
-    });
-  }, [liveIncidents]);
+    liveIncidents.forEach(i => bounds.extend([i.location.lng, i.location.lat]));
+    map.current.fitBounds(bounds, { padding: 80, maxZoom: 15, duration: 600 });
+  }, [liveIncidents, mapLoaded]);
 
   return (
-    <div
-      ref={mapContainer}
-      style={{
-        width: '100%',
-        height: '100%',
-        borderRadius: '24px',
-        overflow: 'hidden'
-      }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '24px', overflow: 'hidden' }}>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+
+      {/* Loading skeleton shown while tiles fetch */}
+      {!mapLoaded && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundColor: darkMode ? '#0f172a' : '#e2e8f0',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 12, borderRadius: '24px'
+        }}>
+          <Loader2 size={32} style={{ color: '#174ea6', animation: 'spin 1s linear infinite' }} />
+          <span style={{ fontSize: 14, fontWeight: 600, color: darkMode ? '#94a3b8' : '#64748b' }}>
+            Loading map…
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
