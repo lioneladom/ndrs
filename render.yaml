@@ -16,9 +16,3 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
-      - key: DATABASE_FILE
-        value: /var/data/database.json
-    disk:
-      name: ndrs-data
-      mountPath: /var/data
-      sizeGB: 1
