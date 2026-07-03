@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ndrs-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: DATABASE_FILE
+        value: /var/data/database.json
+    disk:
+      name: ndrs-data
+      mountPath: /var/data
+      sizeGB: 1
