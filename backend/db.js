@@ -7,9 +7,30 @@ import bcrypt from 'bcryptjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DB_PATH = process.env.DATABASE_FILE
-  ? path.resolve(process.env.DATABASE_FILE)
-  : path.join(__dirname, 'database.json');
+// ─── Resolve DB path with writable fallback ───────────────────────────────────
+function resolveDbPath() {
+  const configured = process.env.DATABASE_FILE
+    ? path.resolve(process.env.DATABASE_FILE)
+    : path.join(__dirname, 'database.json');
+
+  // Check if the parent directory is writable (or can be created)
+  const dir = path.dirname(configured);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.accessSync(dir, fs.constants.W_OK);
+    return configured;
+  } catch {
+    const fallback = path.join(__dirname, 'database.json');
+    console.warn(
+      `⚠️  Cannot write to ${configured} (disk not mounted or permission denied).\n` +
+      `   Falling back to ${fallback}.\n` +
+      `   Data will NOT persist across deploys unless you add a Render persistent disk.`
+    );
+    return fallback;
+  }
+}
+
+const DB_PATH = resolveDbPath();
 
 const INITIAL_RESOURCES = [
   { id: uuidv4(), name: 'Fire Engine Alpha', type: 'Fire', availability: 'Available', location: { lat: 5.6150, lng: -0.2057 }, assignedTo: null },
@@ -33,9 +54,6 @@ try {
 
 function save() {
   try {
-    // Ensure the parent directory exists (critical on Render's /var/data mount)
-    const dir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
   } catch (e) {
     console.error('DB save error:', e);
