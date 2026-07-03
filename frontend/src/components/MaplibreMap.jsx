@@ -9,37 +9,49 @@ import ReactDOMServer from 'react-dom/server';
 
 const getIncidentIcon = (type) => {
   switch (type) {
-    case 'FIRE': return <Flame size={24} color="white" />;
-    case 'FLOOD': return <Droplets size={24} color="white" />;
-    case 'MEDICAL': return <HeartPulse size={24} color="white" />;
-    case 'ACCIDENT': return <Car size={24} color="white" />;
-    case 'POLICE': return <ShieldAlert size={24} color="white" />;
-    case 'EARTHQUAKE': return <AlertTriangle size={24} color="white" />;
-    case 'LANDSLIDE': return <Mountain size={24} color="white" />;
-    case 'STORM': return <Wind size={24} color="white" />;
-    case 'POWER': return <Zap size={24} color="white" />;
-    default: return <AlertTriangle size={24} color="white" />;
+    case 'FIRE':       return <Flame size={20} color="white" />;
+    case 'FLOOD':      return <Droplets size={20} color="white" />;
+    case 'MEDICAL':    return <HeartPulse size={20} color="white" />;
+    case 'ACCIDENT':   return <Car size={20} color="white" />;
+    case 'POLICE':     return <ShieldAlert size={20} color="white" />;
+    case 'EARTHQUAKE': return <AlertTriangle size={20} color="white" />;
+    case 'LANDSLIDE':  return <Mountain size={20} color="white" />;
+    case 'STORM':      return <Wind size={20} color="white" />;
+    case 'POWER':      return <Zap size={20} color="white" />;
+    default:           return <AlertTriangle size={20} color="white" />;
   }
 };
 
 const INCIDENT_COLORS = {
-  FIRE: '#dc2626',
-  FLOOD: '#2563eb',
-  MEDICAL: '#16a34a',
-  ACCIDENT: '#f59e0b',
-  POLICE: '#7c3aed',
-  EARTHQUAKE: '#b45309',
-  LANDSLIDE: '#92400e',
-  STORM: '#0f172a',
-  POWER: '#ca8a04',
+  FIRE: '#dc2626', FLOOD: '#2563eb', MEDICAL: '#16a34a',
+  ACCIDENT: '#f59e0b', POLICE: '#7c3aed', EARTHQUAKE: '#b45309',
+  LANDSLIDE: '#92400e', STORM: '#334155', POWER: '#ca8a04',
   default: '#6b7280'
 };
 
-const isResolved = (incident) => incident?.status?.toLowerCase() === 'resolved';
+const isResolved = (inc) => inc?.status?.toLowerCase() === 'resolved';
 
-// OpenFreeMap — fast, free, no API key, mobile-optimised
-const TILE_STYLE_LIGHT = 'https://tiles.openfreemap.org/styles/liberty';
-const TILE_STYLE_DARK  = 'https://tiles.openfreemap.org/styles/dark';
+// Lightweight raster tile style — loads instantly on mobile, no WebGL font/sprite overhead
+function buildRasterStyle(dark) {
+  return {
+    version: 8,
+    sources: {
+      osm: {
+        type: 'raster',
+        tiles: dark
+          // CartoDB dark raster — fast CDN, no API key
+          ? ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
+             'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png']
+          : ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+             'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+             'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: '© OpenStreetMap contributors'
+      }
+    },
+    layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
+  };
+}
 
 export default function MaplibreMap({
   center = [5.6037, -0.1870],
@@ -56,10 +68,9 @@ export default function MaplibreMap({
   const map = useRef(null);
   const markers = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
-  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [mapError, setMapError] = useState(false);
   const liveIncidents = useMemo(
-    () => incidents.filter((incident) => !isResolved(incident)),
+    () => incidents.filter((i) => !isResolved(i)),
     [incidents]
   );
 
@@ -67,131 +78,144 @@ export default function MaplibreMap({
     if (!mapContainer.current) return;
 
     setMapLoaded(false);
+    setMapError(false);
 
-    map.current = new maplibregl.Map({
+    const m = new maplibregl.Map({
       container: mapContainer.current,
-      style: darkMode ? TILE_STYLE_DARK : TILE_STYLE_LIGHT,
-      center: [center[1], center[0]], // [lng, lat]
-      zoom: zoom,
+      style: buildRasterStyle(darkMode),
+      center: [center[1], center[0]],
+      zoom,
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
-      maxTileCacheSize: 20, // Keep memory footprint small on mobile
+      attributionControl: false,
     });
 
-    map.current.on('load', () => setMapLoaded(true));
+    map.current = m;
 
-    // Add navigation controls
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
+    m.on('load', () => setMapLoaded(true));
+    m.on('error', () => setMapError(true));
 
-    // Get user location (low-accuracy = uses network, much faster on mobile)
+    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    m.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+
+    // Low-accuracy user location (fast: uses WiFi/cell, not GPS)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const loc = [pos.coords.longitude, pos.coords.latitude];
-          setUserLocation(loc);
-          map.current?.setCenter(loc);
+          m.setCenter([pos.coords.longitude, pos.coords.latitude]);
         },
         () => {},
-        { enableHighAccuracy: false, maximumAge: 30000 }
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
       );
     }
 
     return () => {
-      map.current?.remove();
+      m.remove();
       map.current = null;
     };
   }, [darkMode]);
 
-  // Update markers when incidents/mapLoaded changes
+  // Re-add markers whenever incidents or mapLoaded changes
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    markers.current.forEach(marker => marker.remove());
+    markers.current.forEach(m => m.remove());
     markers.current = [];
 
     liveIncidents.forEach(incident => {
       const el = document.createElement('div');
-      el.className = 'incident-marker';
+      const color = INCIDENT_COLORS[incident.type] || INCIDENT_COLORS.default;
       el.style.cssText = `
-        width:48px;height:48px;border-radius:50%;border:3px solid white;
-        background-color:${INCIDENT_COLORS[incident.type] || INCIDENT_COLORS.default};
-        box-shadow:0 4px 14px rgba(0,0,0,0.3);
-        display:flex;align-items:center;justify-content:center;cursor:pointer;
+        width:40px;height:40px;border-radius:50%;
+        border:2.5px solid white;background:${color};
+        box-shadow:0 2px 8px rgba(0,0,0,0.35);
+        display:flex;align-items:center;justify-content:center;
+        cursor:pointer;
       `;
       el.innerHTML = ReactDOMServer.renderToString(getIncidentIcon(incident.type));
 
+      const popup = new maplibregl.Popup({ offset: 24, maxWidth: '240px' }).setHTML(`
+        <div style="padding:10px 12px;font-family:sans-serif;">
+          <strong style="font-size:14px;">${incident.type} — ${incident.status}</strong>
+          <p style="font-size:12px;margin:6px 0 0;color:#555;line-height:1.4;">${incident.description || ''}</p>
+        </div>
+      `);
+
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat([incident.location.lng, incident.location.lat])
-        .setPopup(
-          new maplibregl.Popup({ offset: 25 }).setHTML(`
-            <div style="min-width:200px;color:${darkMode ? '#f1f5f9' : '#0f172a'};background:${darkMode ? '#1e293b' : 'white'};padding:12px;border-radius:12px;">
-              <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:900;">${incident.type}</h3>
-              <p style="margin:0 0 8px 0;font-size:14px;color:${darkMode ? '#94a3b8' : '#64748b'};line-height:1.5;">${incident.description}</p>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:${incident.status === 'New' ? '#fee2e2' : '#dbeafe'};color:${incident.status === 'New' ? '#d92b2b' : '#174ea6'};">${incident.status}</span>
-                ${incident.severity ? `<span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:${incident.severity === 'CRITICAL' ? '#fee2e2' : '#fef3c7'};color:${incident.severity === 'CRITICAL' ? '#d92b2b' : '#92400e'};">${incident.severity}</span>` : ''}
-                ${incident.media?.length ? `<span style="padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#dbeafe;color:#174ea6;">${incident.media.length} file${incident.media.length > 1 ? 's' : ''}</span>` : ''}
-              </div>
-            </div>
-          `)
-        )
+        .setPopup(popup)
         .addTo(map.current);
 
-      el.addEventListener('click', () => {
-        setSelectedMarker(incident.id);
-        onMarkerClick?.(incident);
-      });
-
+      el.addEventListener('click', () => onMarkerClick?.(incident));
       markers.current.push(marker);
     });
 
+    // Draggable confirm-location marker
     if (onLocationSelect && selectedLocation) {
-      const confirmEl = document.createElement('div');
-      confirmEl.style.cssText = `
-        width:56px;height:56px;border-radius:50%;border:4px solid white;
-        background:#dc2626;box-shadow:0 6px 20px rgba(220,38,38,0.5);
+      const pin = document.createElement('div');
+      pin.style.cssText = `
+        width:48px;height:48px;border-radius:50%;
+        border:3px solid white;background:#dc2626;
+        box-shadow:0 4px 16px rgba(220,38,38,0.5);
         display:flex;align-items:center;justify-content:center;cursor:grab;
       `;
-      confirmEl.innerHTML = ReactDOMServer.renderToString(<MapPin size={28} color="white" />);
+      pin.innerHTML = ReactDOMServer.renderToString(<MapPin size={24} color="white" />);
 
-      const confirmMarker = new maplibregl.Marker({ element: confirmEl, anchor: 'center', draggable: true })
+      const confirmMarker = new maplibregl.Marker({ element: pin, anchor: 'center', draggable: true })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
         .addTo(map.current);
 
       confirmMarker.on('dragend', () => {
-        const lngLat = confirmMarker.getLngLat();
-        onLocationSelect({ lat: lngLat.lat, lng: lngLat.lng });
+        const { lat, lng } = confirmMarker.getLngLat();
+        onLocationSelect({ lat, lng });
       });
-
       markers.current.push(confirmMarker);
     }
-  }, [liveIncidents, selectedLocation, onLocationSelect, darkMode, mapLoaded]);
+  }, [liveIncidents, selectedLocation, onLocationSelect, mapLoaded]);
 
-  // Fit bounds to incidents
+  // Fit map to show all incidents
   useEffect(() => {
     if (!map.current || !mapLoaded || liveIncidents.length === 0) return;
     const bounds = new maplibregl.LngLatBounds();
     liveIncidents.forEach(i => bounds.extend([i.location.lng, i.location.lat]));
-    map.current.fitBounds(bounds, { padding: 80, maxZoom: 15, duration: 600 });
+    map.current.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 500 });
   }, [liveIncidents, mapLoaded]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '24px', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      {/* Map container — MapLibre needs a real pixel height, ensured by parent */}
       <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
-      {/* Loading skeleton shown while tiles fetch */}
-      {!mapLoaded && (
+      {/* Loading overlay */}
+      {!mapLoaded && !mapError && (
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundColor: darkMode ? '#0f172a' : '#e2e8f0',
+          background: darkMode ? '#0f172a' : '#e2e8f0',
           display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 12, borderRadius: '24px'
+          alignItems: 'center', justifyContent: 'center', gap: 12,
         }}>
-          <Loader2 size={32} style={{ color: '#174ea6', animation: 'spin 1s linear infinite' }} />
+          <Loader2
+            size={32}
+            style={{ color: '#174ea6', animation: 'spin 1s linear infinite' }}
+          />
           <span style={{ fontSize: 14, fontWeight: 600, color: darkMode ? '#94a3b8' : '#64748b' }}>
             Loading map…
+          </span>
+        </div>
+      )}
+
+      {/* Error state */}
+      {mapError && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: darkMode ? '#0f172a' : '#f8fafc',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          <MapPin size={32} style={{ color: '#94a3b8' }} />
+          <span style={{ fontSize: 14, color: '#64748b', textAlign: 'center', padding: '0 16px' }}>
+            Map failed to load. Check your connection and try again.
           </span>
         </div>
       )}

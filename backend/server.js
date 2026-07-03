@@ -32,7 +32,8 @@ const io = new Server(httpServer, {
 });
 
 // Create uploads directory
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
+// In production (Render), set UPLOADS_DIR=/var/data/uploads to persist across deploys
+const UPLOADS_DIR = process.env.UPLOADS_DIR || path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }

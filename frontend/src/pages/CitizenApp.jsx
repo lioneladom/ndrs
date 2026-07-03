@@ -444,8 +444,7 @@ export default function CitizenApp() {
               <h1 style={{ fontSize: 30, fontWeight: 900, color: darkMode ? '#f8fafc' : '#0f172a', fontFamily: 'var(--font-title)' }}>Live Map</h1>
             </div>
             <div style={{
-              flex: 1,
-              minHeight: isMobile ? 320 : 400,
+              height: isMobile ? 360 : 500,
               borderRadius: 24,
               overflow: 'hidden',
               border: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`,
