@@ -32,7 +32,14 @@ try {
 }
 
 function save() {
-  try { fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2)); } catch (e) { console.error('DB save error:', e); }
+  try {
+    // Ensure the parent directory exists (critical on Render's /var/data mount)
+    const dir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  } catch (e) {
+    console.error('DB save error:', e);
+  }
 }
 
 // ─── Super Admin Seeding ──────────────────────────────────────────────────────
