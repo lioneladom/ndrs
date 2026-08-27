@@ -93,6 +93,7 @@ export default function CitizenApp() {
     { id: 'map', icon: Map, label: 'Map' },
     { id: 'resources', icon: BookOpen, label: 'Resources' },
     { id: 'reports', icon: FileText, label: 'Reports' },
+    { id: 'settings', icon: Settings, label: 'Settings', isAction: true },
   ];
 
   const quickReports = [
@@ -1106,7 +1107,13 @@ export default function CitizenApp() {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.isAction) {
+                  setShowSettingsModal(true);
+                } else {
+                  setActiveTab(item.id);
+                }
+              }}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -1160,7 +1167,13 @@ export default function CitizenApp() {
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => {
+                if (item.isAction) {
+                  setShowSettingsModal(true);
+                } else {
+                  setActiveTab(item.id);
+                }
+              }}
               style={{
                 width: 48,
                 height: 48,
