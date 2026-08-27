@@ -178,7 +178,8 @@ export const incidents = {
   getAll: () => [...db.incidents].reverse(),
   getById: (id) => db.incidents.find(i => i.id === id),
 
-  create: ({ type, severity, description, location, reportedBy, reporterName, media }) => {
+  create: ({ type, severity, description, location, reportedBy, reporterName, media, timestamp, createdAt }) => {
+    const now = new Date().toISOString();
     const incident = {
       id: uuidv4(),
       type, severity, description, location,
@@ -186,7 +187,8 @@ export const incidents = {
       reporterName: reporterName || 'Anonymous',
       status: 'New',
       media: media || [],
-      timestamp: new Date().toISOString()
+      timestamp: timestamp || createdAt || now,
+      createdAt: createdAt || timestamp || now
     };
     db.incidents.push(incident);
     save();

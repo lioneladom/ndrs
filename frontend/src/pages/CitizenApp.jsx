@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping } from 'lucide-react';
+import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
+import TimeAgo from '../components/TimeAgo';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { api, socket } from '../utils/api';
 import { prepareReportMedia } from '../utils/media';
 
@@ -25,7 +27,7 @@ export default function CitizenApp() {
   const [showLocationConfirm, setShowLocationConfirm] = useState(false);
   const [tempLocation, setTempLocation] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleTheme } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
 
@@ -435,6 +437,10 @@ export default function CitizenApp() {
                             }}>
                               {incident.status}
                             </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', marginLeft: 'auto' }}>
+                              <Clock size={12} />
+                              <TimeAgo date={incident.timestamp || incident.createdAt} />
+                            </span>
                           </div>
                           <p style={{ color: darkMode ? '#94a3b8' : '#64748b', fontSize: 14, marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                             {incident.description}
@@ -524,6 +530,10 @@ export default function CitizenApp() {
                             {selectedIncident.severity}
                           </span>
                         )}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+                          <Clock size={13} />
+                          <TimeAgo date={selectedIncident.timestamp || selectedIncident.createdAt} />
+                        </span>
                       </div>
                       <p style={{ color: darkMode ? '#94a3b8' : '#64748b', marginTop: 12, lineHeight: 1.6 }}>{selectedIncident.description}</p>
                       
@@ -665,6 +675,10 @@ export default function CitizenApp() {
                               color: incident.status === 'New' ? '#dc2626' : '#2563eb',
                             }}>
                               {incident.status}
+                            </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', marginLeft: 'auto' }}>
+                              <Clock size={12} />
+                              <TimeAgo date={incident.timestamp || incident.createdAt} />
                             </span>
                           </div>
                           <p style={{ color: darkMode ? '#94a3b8' : '#64748b', marginTop: 8, lineHeight: 1.6 }}>{incident.description}</p>
@@ -946,6 +960,10 @@ export default function CitizenApp() {
                             }}>
                               {incident.severity}
                             </span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: darkMode ? '#94a3b8' : '#64748b', marginLeft: 'auto' }}>
+                              <Clock size={12} />
+                              <TimeAgo date={incident.timestamp || incident.createdAt} />
+                            </span>
                           </div>
                           <p style={{ color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.6 }}>{incident.description}</p>
                         </div>
@@ -1059,7 +1077,7 @@ export default function CitizenApp() {
               }}>
                 <button
                   onClick={() => {
-                    setDarkMode(!darkMode);
+                    toggleTheme();
                     setShowUserMenu(false);
                   }}
                   style={{
@@ -1819,6 +1837,10 @@ export default function CitizenApp() {
                         {selectedIncident.severity}
                       </span>
                     )}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: darkMode ? '#94a3b8' : '#64748b', fontWeight: 600 }}>
+                      <Clock size={13} />
+                      <TimeAgo date={selectedIncident.timestamp || selectedIncident.createdAt} />
+                    </span>
                   </div>
                   <p style={{ color: darkMode ? '#94a3b8' : '#64748b', marginTop: 12, lineHeight: 1.6 }}>{selectedIncident.description}</p>
                   

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Briefcase, CloudRain, ChevronUp, AlertCircle, Phone, Shield, Car, X } from 'lucide-react';
+import { Flame, Briefcase, CloudRain, ChevronUp, AlertCircle, Phone, Shield, Car, X, Clock } from 'lucide-react';
 import LeafletMap from '../components/LeafletMap.jsx';
+import TimeAgo from '../components/TimeAgo.jsx';
 
 export default function MapView({ incidents = [], resources = [] }) {
   const [activeFilter, setActiveFilter] = useState('ALL');
@@ -181,9 +182,20 @@ export default function MapView({ incidents = [], resources = [] }) {
                 {selectedItem.type === 'POLICE' && 'Police Dispatch'}
                 {(selectedItem.type === 'ACCIDENT') && 'Accident Scene'}
               </h3>
-              <span style={{ fontSize: '12px', color: 'var(--ndrs-muted)' }}>
-                {selectedItem.distance || '0.8 km away'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12px', color: 'var(--ndrs-muted)' }}>
+                  {selectedItem.distance || '0.8 km away'}
+                </span>
+                {(selectedItem.timestamp || selectedItem.createdAt) && (
+                  <>
+                    <span style={{ fontSize: '12px', color: 'var(--ndrs-muted)' }}>•</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--ndrs-muted)' }}>
+                      <Clock size={11} />
+                      <TimeAgo date={selectedItem.timestamp || selectedItem.createdAt} />
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
 

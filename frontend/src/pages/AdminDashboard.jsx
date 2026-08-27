@@ -3,17 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Shield, Users, MapPin, Bell, CheckCircle, XCircle, Clock, Flame, Droplets, HeartPulse, Car, TrendingUp, Moon, Sun, KeyRound } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
+import TimeAgo from '../components/TimeAgo';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { api, socket } from '../utils/api';
 
 export default function AdminDashboard() {
   const { user, logout, isSuperAdmin } = useAuth();
+  const { darkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState([]);
   const [resources, setResources] = useState([]);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('ndrs_admin_theme') === 'dark');
   const [resolvingId, setResolvingId] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
@@ -65,9 +67,7 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('ndrs_admin_theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
         </div>
 
         <button
-          onClick={() => setDarkMode((value) => !value)}
+          onClick={toggleTheme}
           style={{
             width: isCompact ? 'auto' : '100%',
             display: 'flex',
@@ -431,6 +431,10 @@ export default function AdminDashboard() {
                                 {selectedIncident.severity}
                               </span>
                             )}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: muted, fontWeight: 600 }}>
+                              <Clock size={13} />
+                              <TimeAgo date={selectedIncident.timestamp || selectedIncident.createdAt} />
+                            </span>
                           </div>
                           <p style={{ color: muted, lineHeight: 1.6 }}>{selectedIncident.description}</p>
                           <IncidentAttachments media={selectedIncident.media} darkMode={darkMode} />
@@ -540,7 +544,9 @@ export default function AdminDashboard() {
                               <p style={{ fontSize: 14, color: muted, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{incident.description}</p>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                                 <Clock size={12} style={{ color: muted }} />
-                                <span style={{ fontSize: 12, color: muted }}>Just now</span>
+                                <span style={{ fontSize: 12, color: muted }}>
+                                  <TimeAgo date={incident.timestamp || incident.createdAt} />
+                                </span>
                               </div>
                             </div>
                           </div>

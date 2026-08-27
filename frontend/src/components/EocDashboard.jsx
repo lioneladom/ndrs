@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, Radio, CheckCircle, Flame, CloudRain, Briefcase, MapPin, Clock, Truck, Satellite, Wifi, AlertCircle, Users } from 'lucide-react';
 import LeafletMap from './LeafletMap.jsx';
+import TimeAgo from './TimeAgo.jsx';
 import { api } from '../utils/api.js';
 
 export default function EocDashboard({
@@ -142,7 +143,7 @@ export default function EocDashboard({
                   
                   <div className="eoc-card-footer">
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={11} /> {inc.location.lat.toFixed(4)}, {inc.location.lng.toFixed(4)}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={11} /> {new Date(inc.timestamp).toLocaleTimeString()}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={11} /> <TimeAgo date={inc.timestamp || inc.createdAt} /></span>
                   </div>
                 </div>
               ))
