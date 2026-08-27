@@ -1,17 +1,74 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useTheme } from '../context/ThemeContext';
-import { Navigation, Moon, Mountain, MapPin, Compass } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
 // ─── OpenFreeMap Style URLs (100% free, no API key) ─────────────────────────
 const STYLES = {
-  bright:   'https://tiles.openfreemap.org/styles/bright',
-  liberty:  'https://tiles.openfreemap.org/styles/liberty',
-  positron: 'https://tiles.openfreemap.org/styles/positron',
-  dark:     'https://tiles.openfreemap.org/styles/dark',
-  fiord:    'https://tiles.openfreemap.org/styles/fiord',
+  bright: 'https://tiles.openfreemap.org/styles/bright',
+  fiord:  'https://tiles.openfreemap.org/styles/fiord',
 };
+
+// ─── Fiord label patches ────────────────────────────────────────────────────
+// These layers exist in Bright but are missing from Fiord.
+// We fetch the Bright style once, extract them, recolor for dark bg, and inject.
+let _brightLabelLayersCache = null;
+
+async function getBrightLabelLayers() {
+  if (_brightLabelLayersCache) return _brightLabelLayersCache;
+  try {
+    const res = await fetch(STYLES.bright);
+    const style = await res.json();
+
+    // IDs missing from Fiord that contain building/hostel/POI and road name labels
+    const neededIds = [
+      'poi_r20', 'poi_r7', 'poi_r1', 'poi_transit',
+      'highway-name-path', 'highway-name-minor', 'highway-name-major',
+    ];
+
+    const layers = style.layers
+      .filter(l => neededIds.includes(l.id))
+      .map(l => {
+        // Deep clone
+        const clone = JSON.parse(JSON.stringify(l));
+        // Recolor text for dark background
+        if (clone.paint) {
+          clone.paint['text-color'] = '#c8d6e5';
+          clone.paint['text-halo-color'] = 'rgba(30, 39, 56, 0.85)';
+          clone.paint['text-halo-width'] = 1.5;
+          clone.paint['text-halo-blur'] = 0.5;
+        }
+        // Remove icon-image references (POI icons might not exist in Fiord sprite)
+        if (clone.layout && clone.layout['icon-image']) {
+          delete clone.layout['icon-image'];
+          clone.layout['text-offset'] = [0, 0];
+          clone.layout['text-anchor'] = 'center';
+        }
+        return clone;
+      });
+
+    _brightLabelLayersCache = layers;
+    return layers;
+  } catch {
+    return [];
+  }
+}
+
+function injectLabelsIntoFiord(map) {
+  getBrightLabelLayers().then(layers => {
+    if (!map || !map.isStyleLoaded()) return;
+    layers.forEach(layer => {
+      if (!map.getLayer(layer.id)) {
+        try {
+          map.addLayer(layer);
+        } catch {
+          // Layer source may not be ready yet, ignore
+        }
+      }
+    });
+  });
+}
 
 // ─── SVG Icon Paths for incident markers ────────────────────────────────────
 const SVG_ICONS = {
@@ -189,11 +246,12 @@ export default function MaplibreMap({
   const pinMarkerRef = useRef(null);
   const userLocRef = useRef(null);
 
-  const [activeStyle, setActiveStyle] = useState(() => (darkMode ? 'dark' : 'bright'));
+  // Bright for light mode, Fiord for dark mode
+  const [activeStyle, setActiveStyle] = useState(() => (darkMode ? 'fiord' : 'bright'));
 
   // Sync style with theme
   useEffect(() => {
-    setActiveStyle(darkMode ? 'dark' : 'bright');
+    setActiveStyle(darkMode ? 'fiord' : 'bright');
   }, [darkMode]);
 
   // ── Initialize Map ──────────────────────────────────────────────────────
@@ -210,6 +268,13 @@ export default function MaplibreMap({
     });
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
+
+    // Inject missing POI labels into Fiord when style loads
+    map.on('load', () => {
+      if (activeStyle === 'fiord') {
+        injectLabelsIntoFiord(map);
+      }
+    });
 
     mapRef.current = map;
 
@@ -234,11 +299,16 @@ export default function MaplibreMap({
 
     map.setStyle(STYLES[activeStyle] || STYLES.bright);
 
-    // Re-apply view after style loads
-    map.once('styledata', () => {
+    // Re-apply view and inject labels after style loads
+    map.once('style.load', () => {
       map.setCenter(currentCenter);
       map.setZoom(currentZoom);
       routeSourceAdded.current = false;
+
+      // Inject missing POI/building labels into Fiord
+      if (activeStyle === 'fiord') {
+        injectLabelsIntoFiord(map);
+      }
     });
   }, [activeStyle]);
 
@@ -347,7 +417,7 @@ export default function MaplibreMap({
     if (map.isStyleLoaded()) {
       addRoutes();
     } else {
-      map.once('styledata', addRoutes);
+      map.once('style.load', addRoutes);
     }
   }, [incidents, resources]);
 
@@ -412,13 +482,10 @@ export default function MaplibreMap({
     }
   }, [selectedLocation, onLocationSelect]);
 
-  // ── Layer Switcher Buttons ──────────────────────────────────────────────
+  // ── Layer Switcher (Bright / Fiord only) ────────────────────────────────
   const layers = [
-    { id: 'bright', label: 'Bright', icon: Navigation },
-    { id: 'liberty', label: 'Liberty', icon: Compass },
-    { id: 'positron', label: 'Light', icon: MapPin },
-    { id: 'dark', label: 'Dark', icon: Moon },
-    { id: 'fiord', label: 'Fiord', icon: Mountain },
+    { id: 'bright', label: 'Bright', Icon: Sun },
+    { id: 'fiord',  label: 'Fiord',  Icon: Moon },
   ];
 
   return (
@@ -431,9 +498,9 @@ export default function MaplibreMap({
         zIndex: 10,
         display: 'flex',
         alignItems: 'center',
-        gap: 4,
-        padding: 4,
-        borderRadius: 14,
+        gap: 2,
+        padding: 3,
+        borderRadius: 12,
         backgroundColor: darkMode ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.92)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
@@ -442,7 +509,6 @@ export default function MaplibreMap({
       }}>
         {layers.map(layer => {
           const isSelected = activeStyle === layer.id;
-          const Icon = layer.icon;
           return (
             <button
               key={layer.id}
@@ -452,8 +518,8 @@ export default function MaplibreMap({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                padding: '6px 10px',
-                borderRadius: 10,
+                padding: '6px 12px',
+                borderRadius: 9,
                 border: 'none',
                 backgroundColor: isSelected ? 'var(--ndrs-blue, #2563eb)' : 'transparent',
                 color: isSelected ? '#ffffff' : (darkMode ? '#94a3b8' : '#475569'),
@@ -464,7 +530,7 @@ export default function MaplibreMap({
                 whiteSpace: 'nowrap',
               }}
             >
-              <Icon size={13} />
+              <layer.Icon size={13} />
               <span>{layer.label}</span>
             </button>
           );
