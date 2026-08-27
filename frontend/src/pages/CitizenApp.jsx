@@ -27,7 +27,7 @@ export default function CitizenApp() {
   const [showLocationConfirm, setShowLocationConfirm] = useState(false);
   const [tempLocation, setTempLocation] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
-  const { darkMode, toggleTheme } = useTheme();
+  const { darkMode } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
 
@@ -1075,36 +1075,7 @@ export default function CitizenApp() {
                 zIndex: 1000,
                 minWidth: 200,
               }}>
-                <button
-                  onClick={() => {
-                    toggleTheme();
-                    setShowUserMenu(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 16px',
-                    borderRadius: 12,
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: darkMode ? '#f8fafc' : '#0f172a',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = darkMode ? '#334155' : '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
-                  {darkMode ? 'Light Mode' : 'Dark Mode'}
-                </button>
+
                 <button
                   onClick={() => {
                     logout();

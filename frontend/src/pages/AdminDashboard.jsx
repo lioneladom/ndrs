@@ -10,7 +10,7 @@ import { api, socket } from '../utils/api';
 
 export default function AdminDashboard() {
   const { user, logout, isSuperAdmin } = useAuth();
-  const { darkMode, toggleTheme } = useTheme();
+  const { darkMode } = useTheme();
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState([]);
   const [resources, setResources] = useState([]);
@@ -272,27 +272,7 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <button
-          onClick={toggleTheme}
-          style={{
-            width: isCompact ? 'auto' : '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '12px 16px',
-            borderRadius: 16,
-            fontWeight: 700,
-            color: muted,
-            backgroundColor: soft,
-            border: `1px solid ${border}`,
-            cursor: 'pointer',
-            marginTop: isCompact ? 12 : 0,
-            marginBottom: 12
-          }}
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          {darkMode ? 'Light Mode' : 'Dark Mode'}
-        </button>
+
 
         <button
           onClick={logout}

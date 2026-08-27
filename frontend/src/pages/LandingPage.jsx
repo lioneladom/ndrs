@@ -12,12 +12,9 @@ import {
   MapPin,
   PhoneCall,
   Radio,
-  CheckCircle2,
-  ShieldAlert,
-  Wind
+  CheckCircle2
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
-import ThemeToggle from '../components/ThemeToggle';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -34,13 +31,13 @@ export default function LandingPage() {
     {
       icon: Bell,
       title: 'Instant Alerts',
-      desc: 'Receive real-time push notifications & emergency advisories from NADMO and regional response units.',
+      desc: 'Receive real-time push notifications and emergency advisories from national and regional response units.',
       tag: 'Real-Time'
     },
     {
       icon: MapPin,
       title: 'Live Location GPS',
-      desc: 'Report incidents with accurate GPS tagging for rapid first-responder dispatch to your exact position.',
+      desc: 'Report incidents with accurate GPS coordinates for rapid first-responder dispatch directly to your location.',
       tag: 'Precision'
     },
     {
@@ -52,7 +49,7 @@ export default function LandingPage() {
     {
       icon: Radio,
       title: 'Preparedness Guides',
-      desc: 'Access emergency action protocols, evacuation routes, and safety checklists even in offline modes.',
+      desc: 'Access emergency action protocols, evacuation safety procedures, and disaster checklists anytime.',
       tag: 'Safety'
     },
   ];
@@ -66,14 +63,14 @@ export default function LandingPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--ndrs-canvas)', color: 'var(--ndrs-ink)', display: 'flex', flexDirection: 'column' }}>
-      {/* Ghana National Colors Stripe */}
+      {/* Ghana Flag Colors Accent Stripe */}
       <div style={{ height: 6, width: '100%', display: 'flex', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ flex: 1, backgroundColor: '#ce1126' }} />
         <div style={{ flex: 1, backgroundColor: '#fcd116' }} />
         <div style={{ flex: 1, backgroundColor: '#006b3f' }} />
       </div>
 
-      {/* Modern Header */}
+      {/* Header */}
       <header style={{
         backgroundColor: 'var(--ndrs-surface-glass)',
         backdropFilter: 'blur(12px)',
@@ -82,18 +79,18 @@ export default function LandingPage() {
         position: 'sticky',
         top: 6,
         zIndex: 40,
-        transition: 'all 0.25s ease'
+        transition: 'background-color 0.25s ease, border-color 0.25s ease'
       }}>
-        <div className="ndrs-shell landing-header" style={{ paddingTop: 14, paddingBottom: 14 }}>
+        <div className="ndrs-shell landing-header" style={{ paddingTop: 12, paddingBottom: 12 }}>
           {/* Logo & Brand */}
           <div
             onClick={() => navigate('/')}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none', minWidth: 0 }}
           >
             <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 14,
+              width: 38,
+              height: 38,
+              borderRadius: 12,
               backgroundColor: '#174ea6',
               display: 'flex',
               alignItems: 'center',
@@ -102,38 +99,38 @@ export default function LandingPage() {
               boxShadow: '0 4px 12px rgba(23,78,166,0.35)',
               flexShrink: 0
             }}>
-              <HandHelping size={22} />
+              <HandHelping size={20} />
             </div>
-            <div>
-              <div style={{ fontWeight: 900, fontSize: 20, lineHeight: 1.1, fontFamily: 'var(--font-title)', letterSpacing: '-0.5px' }}>
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ fontWeight: 900, fontSize: 18, lineHeight: 1.15, fontFamily: 'var(--font-title)', letterSpacing: '-0.3px', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                 NDRS Ghana
               </div>
-              <div style={{ fontSize: 11, color: 'var(--ndrs-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Emergency System
+              <div style={{ fontSize: 10, color: 'var(--ndrs-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+                Disaster Response
               </div>
             </div>
           </div>
 
-          {/* Actions & Theme Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <ThemeToggle />
-
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <button
               type="button"
               onClick={() => navigate('/login')}
               style={{
-                padding: '8px 16px',
-                borderRadius: 12,
+                padding: '7px 14px',
+                borderRadius: 10,
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 13,
                 color: 'var(--ndrs-ink)',
                 border: '1px solid var(--ndrs-border)',
                 background: 'var(--ndrs-surface)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                height: 40,
+                height: 36,
                 display: 'inline-flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center',
+                whiteSpace: 'nowrap'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
@@ -149,27 +146,27 @@ export default function LandingPage() {
               type="button"
               onClick={() => navigate('/signup')}
               style={{
-                padding: '8px 18px',
-                borderRadius: 12,
+                padding: '7px 15px',
+                borderRadius: 10,
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 13,
                 color: 'white',
                 backgroundColor: 'var(--ndrs-blue)',
                 border: 'none',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: '0 4px 14px var(--ndrs-glow-blue)',
-                height: 40,
+                boxShadow: '0 4px 12px var(--ndrs-glow-blue)',
+                height: 36,
                 display: 'inline-flex',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: 'center',
+                whiteSpace: 'nowrap'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px var(--ndrs-glow-blue)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 14px var(--ndrs-glow-blue)';
               }}
             >
               Register
@@ -181,34 +178,34 @@ export default function LandingPage() {
       {/* Main Content */}
       <main style={{ flex: 1 }}>
         {/* Hero Section */}
-        <section className="ndrs-shell" style={{ paddingTop: 'clamp(32px, 6vw, 64px)', paddingBottom: 'clamp(40px, 6vw, 72px)' }}>
+        <section className="ndrs-shell" style={{ paddingTop: 'clamp(28px, 5vw, 56px)', paddingBottom: 'clamp(36px, 5vw, 64px)' }}>
           <div className="landing-hero-grid">
-            {/* Left Column: Hero Content */}
+            {/* Left: Content */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              {/* Live Badge */}
+              {/* Status Badge */}
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: '6px 14px',
+                padding: '6px 12px',
                 borderRadius: 999,
                 backgroundColor: 'var(--ndrs-blue-soft)',
                 color: 'var(--ndrs-blue)',
                 fontWeight: 700,
-                fontSize: 13,
-                marginBottom: 20,
+                fontSize: 12,
+                marginBottom: 16,
                 border: '1px solid var(--ndrs-border)'
               }}>
-                <div style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: '#10b981', animation: 'pulse 2s infinite' }} />
-                <span>Republic of Ghana • National EOC Live</span>
+                <div style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: '#10b981', animation: 'pulse 2s infinite' }} />
+                <span>Republic of Ghana • Operations Active</span>
               </div>
 
-              {/* Main Headline */}
+              {/* Title */}
               <h1 style={{
-                fontSize: 'clamp(2.1rem, 6vw, 3.75rem)',
+                fontSize: 'clamp(2rem, 5.5vw, 3.5rem)',
                 fontWeight: 900,
-                lineHeight: 1.12,
-                marginBottom: 20,
+                lineHeight: 1.15,
+                marginBottom: 16,
                 fontFamily: 'var(--font-title)',
                 letterSpacing: '-0.02em',
                 color: 'var(--ndrs-ink)'
@@ -223,27 +220,27 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              {/* Subtitle */}
+              {/* Description */}
               <p style={{
-                fontSize: 'clamp(15px, 2vw, 18px)',
+                fontSize: 'clamp(14px, 1.8vw, 17px)',
                 color: 'var(--ndrs-muted)',
                 lineHeight: 1.6,
-                marginBottom: 28,
-                maxWidth: 540
+                marginBottom: 24,
+                maxWidth: 520
               }}>
                 Report emergencies in seconds, coordinate first-responders with GPS tracking, and receive verified disaster alerts across all 16 regions of Ghana.
               </p>
 
-              {/* Call to Actions */}
-              <div className="landing-actions" style={{ width: '100%', marginBottom: 32 }}>
+              {/* Action Buttons */}
+              <div className="landing-actions" style={{ width: '100%', marginBottom: 28 }}>
                 <button
                   type="button"
                   onClick={() => navigate('/signup')}
                   style={{
-                    padding: '16px 28px',
-                    borderRadius: 16,
+                    padding: '14px 24px',
+                    borderRadius: 14,
                     fontWeight: 800,
-                    fontSize: 16,
+                    fontSize: 15,
                     color: 'white',
                     backgroundColor: '#dc2626',
                     border: 'none',
@@ -252,34 +249,33 @@ export default function LandingPage() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 10,
-                    boxShadow: '0 8px 24px rgba(220,38,38,0.3)',
+                    gap: 8,
+                    boxShadow: '0 6px 20px rgba(220,38,38,0.28)',
                     flex: '1 1 auto',
-                    maxWidth: '100%'
+                    minHeight: 48,
+                    textAlign: 'center'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.backgroundColor = '#b91c1c';
-                    e.currentTarget.style.boxShadow = '0 12px 28px rgba(220,38,38,0.4)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.backgroundColor = '#dc2626';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(220,38,38,0.3)';
                   }}
                 >
                   <span>Report an Incident</span>
-                  <ArrowRight size={18} />
+                  <ArrowRight size={17} />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
                   style={{
-                    padding: '16px 24px',
-                    borderRadius: 16,
+                    padding: '14px 20px',
+                    borderRadius: 14,
                     fontWeight: 700,
-                    fontSize: 16,
+                    fontSize: 15,
                     color: 'var(--ndrs-ink)',
                     backgroundColor: 'var(--ndrs-surface)',
                     border: '1px solid var(--ndrs-border)',
@@ -290,7 +286,8 @@ export default function LandingPage() {
                     justifyContent: 'center',
                     gap: 8,
                     flex: '1 1 auto',
-                    maxWidth: '100%'
+                    minHeight: 48,
+                    textAlign: 'center'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
@@ -301,39 +298,39 @@ export default function LandingPage() {
                     e.currentTarget.style.backgroundColor = 'var(--ndrs-surface)';
                   }}
                 >
-                  <Shield size={18} style={{ color: 'var(--ndrs-blue)' }} />
+                  <Shield size={17} style={{ color: 'var(--ndrs-blue)' }} />
                   <span>Authority Portal</span>
                 </button>
               </div>
 
               {/* Trust Indicators */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', color: 'var(--ndrs-muted)', fontSize: 13 }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircle2 size={16} style={{ color: '#10b981' }} />
-                  NADMO Certified
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', color: 'var(--ndrs-muted)', fontSize: 12 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <CheckCircle2 size={15} style={{ color: '#10b981' }} />
+                  Official Response
                 </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircle2 size={16} style={{ color: '#10b981' }} />
-                  24/7 Dispatch EOC
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <CheckCircle2 size={15} style={{ color: '#10b981' }} />
+                  24/7 EOC Dispatch
                 </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircle2 size={16} style={{ color: '#10b981' }} />
-                  Free for all Citizens
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <CheckCircle2 size={15} style={{ color: '#10b981' }} />
+                  All 16 Regions
                 </span>
               </div>
             </div>
 
-            {/* Right Column: Quick Incident Type Cards */}
+            {/* Right: Quick Access Cards */}
             <div>
               <div style={{
                 backgroundColor: 'var(--ndrs-surface)',
-                borderRadius: 24,
-                padding: 'clamp(16px, 4vw, 24px)',
+                borderRadius: 22,
+                padding: 'clamp(16px, 3.5vw, 22px)',
                 border: '1px solid var(--ndrs-border)',
                 boxShadow: 'var(--ndrs-shadow)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 800, fontFamily: 'var(--font-title)', color: 'var(--ndrs-ink)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 800, fontFamily: 'var(--font-title)', color: 'var(--ndrs-ink)' }}>
                     Emergency Quick Access
                   </h3>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ndrs-blue)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -347,44 +344,42 @@ export default function LandingPage() {
                       key={idx}
                       onClick={() => navigate('/signup')}
                       style={{
-                        padding: '18px 16px',
-                        borderRadius: 18,
+                        padding: '14px 12px',
+                        borderRadius: 16,
                         backgroundColor: 'var(--ndrs-canvas)',
                         border: '1px solid var(--ndrs-border)',
                         transition: 'all 0.2s ease',
                         cursor: 'pointer',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 12
+                        gap: 10
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = item.color;
                         e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = 'var(--ndrs-shadow-sm)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = 'var(--ndrs-border)';
                         e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = 'none';
                       }}
                     >
                       <div style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 14,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         backgroundColor: item.bg,
                         color: item.color
                       }}>
-                        <item.icon size={22} />
+                        <item.icon size={20} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--ndrs-ink)', marginBottom: 2 }}>
+                        <div style={{ fontWeight: 800, fontSize: 14, color: 'var(--ndrs-ink)', marginBottom: 2 }}>
                           {item.type}
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--ndrs-muted)', lineHeight: 1.3 }}>
+                        <div style={{ fontSize: 11, color: 'var(--ndrs-muted)', lineHeight: 1.3 }}>
                           {item.desc}
                         </div>
                       </div>
@@ -392,9 +387,9 @@ export default function LandingPage() {
                   ))}
                 </div>
 
-                <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--ndrs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--ndrs-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 12, color: 'var(--ndrs-muted)' }}>
-                    Immediate danger? Call 112 directly
+                    Immediate danger?
                   </span>
                   <a
                     href="tel:112"
@@ -417,19 +412,19 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Quick Emergency Helplines Bar */}
-        <section style={{ backgroundColor: 'var(--ndrs-surface)', borderTop: '1px solid var(--ndrs-border)', borderBottom: '1px solid var(--ndrs-border)', padding: '24px 0' }}>
+        {/* Emergency Helplines Bar */}
+        <section style={{ backgroundColor: 'var(--ndrs-surface)', borderTop: '1px solid var(--ndrs-border)', borderBottom: '1px solid var(--ndrs-border)', padding: '18px 0' }}>
           <div className="ndrs-shell">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <PhoneCall size={20} style={{ color: 'var(--ndrs-blue)' }} />
+                <PhoneCall size={18} style={{ color: 'var(--ndrs-blue)' }} />
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>Ghana National Emergency Helplines</div>
-                  <div style={{ fontSize: 12, color: 'var(--ndrs-muted)' }}>Toll-free 24/7 direct lines from any network</div>
+                  <div style={{ fontWeight: 800, fontSize: 13 }}>Ghana National Emergency Helplines</div>
+                  <div style={{ fontSize: 11, color: 'var(--ndrs-muted)' }}>Toll-free 24/7 direct lines from any network</div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {emergencyContacts.map((contact, idx) => (
                   <a
                     key={idx}
@@ -437,25 +432,20 @@ export default function LandingPage() {
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 14px',
-                      borderRadius: 12,
+                      gap: 6,
+                      padding: '7px 12px',
+                      borderRadius: 10,
                       backgroundColor: 'var(--ndrs-canvas)',
                       border: '1px solid var(--ndrs-border)',
                       textDecoration: 'none',
                       color: 'var(--ndrs-ink)',
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: 700,
-                      transition: 'all 0.2s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = contact.bg;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--ndrs-border)';
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    <span style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: contact.bg }} />
+                    <span style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: contact.bg }} />
                     <span>{contact.label}:</span>
                     <span style={{ color: contact.bg, fontWeight: 900 }}>{contact.number}</span>
                   </a>
@@ -465,17 +455,17 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Why NDRS / Features Section */}
-        <section style={{ paddingTop: 'clamp(48px, 6vw, 80px)', paddingBottom: 'clamp(48px, 6vw, 80px)' }}>
+        {/* Platform Features Section */}
+        <section style={{ paddingTop: 'clamp(40px, 5vw, 64px)', paddingBottom: 'clamp(40px, 5vw, 64px)' }}>
           <div className="ndrs-shell">
-            <div style={{ textAlign: 'center', marginBottom: 'clamp(32px, 5vw, 48px)' }}>
-              <div style={{ display: 'inline-block', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--ndrs-blue)', marginBottom: 8 }}>
+            <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 4vw, 40px)' }}>
+              <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--ndrs-blue)', marginBottom: 6 }}>
                 Built For Ghana
               </div>
-              <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)', fontWeight: 900, fontFamily: 'var(--font-title)', marginBottom: 12 }}>
+              <h2 style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)', fontWeight: 900, fontFamily: 'var(--font-title)', marginBottom: 10 }}>
                 Why Choose the NDRS Platform?
               </h2>
-              <p style={{ color: 'var(--ndrs-muted)', maxWidth: 600, margin: '0 auto', fontSize: 'clamp(14px, 2vw, 16px)' }}>
+              <p style={{ color: 'var(--ndrs-muted)', maxWidth: 580, margin: '0 auto', fontSize: 'clamp(13px, 1.8vw, 15px)' }}>
                 A unified emergency reporting and coordination network connecting citizens directly with response services.
               </p>
             </div>
@@ -485,8 +475,8 @@ export default function LandingPage() {
                 <div
                   key={idx}
                   style={{
-                    padding: 'clamp(20px, 3vw, 28px)',
-                    borderRadius: 20,
+                    padding: 'clamp(18px, 2.5vw, 24px)',
+                    borderRadius: 18,
                     backgroundColor: 'var(--ndrs-surface)',
                     border: '1px solid var(--ndrs-border)',
                     boxShadow: 'var(--ndrs-shadow-sm)',
@@ -496,38 +486,36 @@ export default function LandingPage() {
                     justifyContent: 'space-between'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = 'var(--ndrs-shadow)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'var(--ndrs-shadow-sm)';
                     e.currentTarget.style.borderColor = 'var(--ndrs-border)';
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                       <div style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 14,
+                        width: 42,
+                        height: 42,
+                        borderRadius: 12,
                         backgroundColor: 'var(--ndrs-blue-soft)',
                         color: 'var(--ndrs-blue)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}>
-                        <feature.icon size={24} />
+                        <feature.icon size={22} />
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 800, padding: '4px 8px', borderRadius: 6, backgroundColor: 'var(--ndrs-canvas)', color: 'var(--ndrs-muted)', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 7px', borderRadius: 6, backgroundColor: 'var(--ndrs-canvas)', color: 'var(--ndrs-muted)', textTransform: 'uppercase' }}>
                         {feature.tag}
                       </span>
                     </div>
-                    <h3 style={{ fontWeight: 800, fontSize: 18, color: 'var(--ndrs-ink)', marginBottom: 8 }}>
+                    <h3 style={{ fontWeight: 800, fontSize: 16, color: 'var(--ndrs-ink)', marginBottom: 6 }}>
                       {feature.title}
                     </h3>
-                    <p style={{ color: 'var(--ndrs-muted)', fontSize: 14, lineHeight: 1.6 }}>
+                    <p style={{ color: 'var(--ndrs-muted)', fontSize: 13, lineHeight: 1.55 }}>
                       {feature.desc}
                     </p>
                   </div>
@@ -538,13 +526,13 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Banner */}
-        <section className="ndrs-shell" style={{ paddingBottom: 'clamp(48px, 6vw, 80px)' }}>
+        <section className="ndrs-shell" style={{ paddingBottom: 'clamp(40px, 5vw, 64px)' }}>
           <div style={{
             background: darkMode
               ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)'
               : 'linear-gradient(135deg, #174ea6 0%, #1e3a8a 100%)',
-            borderRadius: 28,
-            padding: 'clamp(28px, 5vw, 56px)',
+            borderRadius: 24,
+            padding: 'clamp(24px, 4vw, 44px)',
             color: 'white',
             textAlign: 'center',
             position: 'relative',
@@ -552,60 +540,46 @@ export default function LandingPage() {
             boxShadow: 'var(--ndrs-shadow-lg)',
             border: darkMode ? '1px solid #334155' : 'none'
           }}>
-            {/* Subtle background blur accent */}
-            <div style={{
-              position: 'absolute',
-              top: -60,
-              right: -60,
-              width: 180,
-              height: 180,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 209, 22, 0.15)',
-              filter: 'blur(50px)',
-              pointerEvents: 'none'
-            }} />
-
             <h2 style={{
-              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+              fontSize: 'clamp(1.6rem, 3.5vw, 2.25rem)',
               fontWeight: 900,
-              marginBottom: 16,
+              marginBottom: 12,
               fontFamily: 'var(--font-title)',
               letterSpacing: '-0.01em'
             }}>
               Join Thousands of Citizens Keeping Ghana Safe
             </h2>
             <p style={{
-              fontSize: 'clamp(15px, 2vw, 17px)',
+              fontSize: 'clamp(14px, 1.8vw, 16px)',
               color: 'rgba(255,255,255,0.85)',
-              maxWidth: 580,
-              margin: '0 auto 32px auto',
-              lineHeight: 1.6
+              maxWidth: 540,
+              margin: '0 auto 24px auto',
+              lineHeight: 1.55
             }}>
               Create your citizen account today for instant disaster reporting, active safety alerts, and coordinated emergency assistance.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={() => navigate('/signup')}
                 style={{
-                  padding: '16px 36px',
-                  borderRadius: 16,
+                  padding: '14px 28px',
+                  borderRadius: 14,
                   fontWeight: 800,
-                  fontSize: 16,
+                  fontSize: 15,
                   color: '#0f172a',
                   backgroundColor: '#ffffff',
                   border: 'none',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.18)',
+                  maxWidth: '100%'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.backgroundColor = '#f1f5f9';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.backgroundColor = '#ffffff';
                 }}
               >
                 Create Free Citizen Account
@@ -619,55 +593,54 @@ export default function LandingPage() {
       <footer style={{
         backgroundColor: 'var(--ndrs-surface)',
         borderTop: '1px solid var(--ndrs-border)',
-        paddingTop: 36,
-        paddingBottom: 36,
-        transition: 'all 0.25s ease'
+        paddingTop: 28,
+        paddingBottom: 28,
+        transition: 'background-color 0.25s ease, border-color 0.25s ease'
       }}>
         <div className="ndrs-shell">
           <div className="landing-footer-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
+                width: 32,
+                height: 32,
+                borderRadius: 10,
                 backgroundColor: '#174ea6',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white'
               }}>
-                <HandHelping size={18} />
+                <HandHelping size={16} />
               </div>
               <div>
-                <div style={{ fontWeight: 900, fontSize: 16, fontFamily: 'var(--font-title)' }}>
+                <div style={{ fontWeight: 900, fontSize: 15, fontFamily: 'var(--font-title)' }}>
                   NDRS Ghana
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--ndrs-muted)' }}>
+                <div style={{ fontSize: 10, color: 'var(--ndrs-muted)' }}>
                   National Disaster Response System
                 </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                style={{ background: 'none', border: 'none', color: 'var(--ndrs-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--ndrs-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
               >
                 Officer Login
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/signup')}
-                style={{ background: 'none', border: 'none', color: 'var(--ndrs-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--ndrs-muted)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
               >
                 Citizen Registration
               </button>
-              <ThemeToggle showLabel />
             </div>
 
-            <div style={{ fontSize: 12, color: 'var(--ndrs-muted)', textAlign: 'center' }}>
-              © 2026 Republic of Ghana. Ministry of the Interior & NADMO.
+            <div style={{ fontSize: 11, color: 'var(--ndrs-muted)', textAlign: 'center' }}>
+              © 2026 Republic of Ghana. Ministry of the Interior.
             </div>
           </div>
         </div>

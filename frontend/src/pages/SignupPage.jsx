@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HandHelping, Lock, Mail, User, Phone, ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import ThemeToggle from '../components/ThemeToggle.jsx';
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -54,8 +53,6 @@ export default function SignupPage() {
             <ArrowLeft size={18} />
             <span>Back to Home</span>
           </button>
-
-          <ThemeToggle />
         </div>
 
         <div style={{
