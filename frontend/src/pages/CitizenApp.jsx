@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock, Settings } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
