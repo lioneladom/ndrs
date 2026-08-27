@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Flame, Briefcase, CloudRain, ChevronUp, AlertCircle, Phone, Shield, Car, X, Clock } from 'lucide-react';
-import LeafletMap from '../components/LeafletMap.jsx';
+import MaplibreMap from '../components/MaplibreMap';
 import TimeAgo from '../components/TimeAgo.jsx';
 
 export default function MapView({ incidents = [], resources = [] }) {
@@ -95,7 +95,7 @@ export default function MapView({ incidents = [], resources = [] }) {
           })}
         </div>
 
-        <LeafletMap
+        <MaplibreMap
           incidents={filteredIncidents}
           resources={resources}
           onMarkerClick={handleMarkerClick}

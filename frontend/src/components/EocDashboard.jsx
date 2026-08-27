@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Radio, CheckCircle, Flame, CloudRain, Briefcase, MapPin, Clock, Truck, Satellite, Wifi, AlertCircle, Users } from 'lucide-react';
-import LeafletMap from './LeafletMap.jsx';
+import MaplibreMap from './MaplibreMap';
 import TimeAgo from './TimeAgo.jsx';
 import { api } from '../utils/api.js';
 
@@ -155,7 +155,7 @@ export default function EocDashboard({
         <div className="eoc-map-pane">
           {/* Leaflet Live Map */}
           <div className="eoc-map-container">
-            <LeafletMap
+            <MaplibreMap
               incidents={incidents}
               resources={resources}
               center={selectedIncident ? [selectedIncident.location.lat, selectedIncident.location.lng] : [5.6037, -0.1870]}
