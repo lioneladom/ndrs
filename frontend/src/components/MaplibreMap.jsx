@@ -31,31 +31,48 @@ const INCIDENT_COLORS = {
 
 const isResolved = (inc) => inc?.status?.toLowerCase() === 'resolved';
 
-// Lightweight CARTO raster tile style — no API key needed, high-speed global CDN, retina @2x support
+// Stand-alone high performance map tiles — 100% free, 0 API key required, crisp details
 function buildRasterStyle(dark) {
+  if (dark) {
+    return {
+      version: 8,
+      sources: {
+        'esri-dark-base': {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256
+        },
+        'esri-dark-ref': {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256
+        }
+      },
+      layers: [
+        { id: 'esri-dark-base', type: 'raster', source: 'esri-dark-base' },
+        { id: 'esri-dark-ref', type: 'raster', source: 'esri-dark-ref' }
+      ]
+    };
+  }
+
   return {
     version: 8,
     sources: {
-      carto: {
+      'esri-street': {
         type: 'raster',
-        tiles: dark
-          ? [
-              'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-              'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-              'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-              'https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
-            ]
-          : [
-              'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              'https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png'
-            ],
-        tileSize: 256,
-        attribution: '© OpenStreetMap contributors, © CARTO'
+        tiles: [
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'
+        ],
+        tileSize: 256
       }
     },
-    layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
+    layers: [
+      { id: 'esri-street', type: 'raster', source: 'esri-street' }
+    ]
   };
 }
 
@@ -116,7 +133,6 @@ export default function MaplibreMap({
     window.addEventListener('resize', handleResize);
 
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-    m.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
 
     // Low-accuracy user location (fast: uses WiFi/cell, not GPS)
     if (navigator.geolocation) {
@@ -158,10 +174,22 @@ export default function MaplibreMap({
       `;
       el.innerHTML = ReactDOMServer.renderToString(getIncidentIcon(incident.type));
 
-      const popup = new maplibregl.Popup({ offset: 24, maxWidth: '240px' }).setHTML(`
-        <div style="padding:10px 12px;font-family:sans-serif;">
-          <strong style="font-size:14px;">${incident.type} — ${incident.status}</strong>
-          <p style="font-size:12px;margin:6px 0 0;color:#555;line-height:1.4;">${incident.description || ''}</p>
+      const popupBg = darkMode ? '#0f172a' : '#ffffff';
+      const popupText = darkMode ? '#f8fafc' : '#0f172a';
+      const popupMuted = darkMode ? '#cbd5e1' : '#475569';
+      const popupBorder = darkMode ? '#334155' : '#e2e8f0';
+
+      const popup = new maplibregl.Popup({
+        offset: 24,
+        maxWidth: '260px',
+        className: 'ndrs-maplibre-popup'
+      }).setHTML(`
+        <div style="padding:12px 14px;background:${popupBg};color:${popupText};border-radius:14px;border:1px solid ${popupBorder};font-family:inherit;box-shadow:0 10px 25px rgba(0,0,0,0.25);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+            <strong style="font-size:14px;color:${popupText};font-weight:800;">${incident.type}</strong>
+            <span style="font-size:11px;padding:2px 8px;border-radius:999px;background:${color}22;color:${color};font-weight:700;">${incident.status}</span>
+          </div>
+          <p style="font-size:12px;margin:0;color:${popupMuted};line-height:1.5;">${incident.description || 'Incident reported.'}</p>
         </div>
       `);
 
@@ -195,7 +223,7 @@ export default function MaplibreMap({
       });
       markers.current.push(confirmMarker);
     }
-  }, [liveIncidents, selectedLocation, onLocationSelect, mapLoaded]);
+  }, [liveIncidents, selectedLocation, onLocationSelect, mapLoaded, darkMode]);
 
   // Fit map to show all incidents
   useEffect(() => {

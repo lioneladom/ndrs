@@ -1,36 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useTheme } from '../context/ThemeContext';
 
 // ─── SVG Icon Paths ────────────────────────────────────────────────────────────
 const SVG_ICONS = {
-  // Flame (fire)
   FIRE: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
-  // Cloud-rain (flood)
   FLOOD: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>`,
-  // Cross / briefcase (medical)
   MEDICAL: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`,
-  // Car (accident)
   ACCIDENT: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17H5v-5l2-7h10l2 7z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>`,
 };
 
 // Custom Marker Generator using pure SVG
-const getMarkerIcon = (type, status, name = '') => {
+const getMarkerIcon = (type, status) => {
   let color = '#174ea6';
   let svgPath = SVG_ICONS.FIRE;
 
   if (type === 'FIRE') {
-    color = '#d92b2b';
+    color = '#dc2626';
     svgPath = SVG_ICONS.FIRE;
   } else if (type === 'FLOOD') {
-    color = '#174ea6';
+    color = '#2563eb';
     svgPath = SVG_ICONS.FLOOD;
   } else if (type === 'MEDICAL') {
-    color = '#0f9d58';
+    color = '#16a34a';
     svgPath = SVG_ICONS.MEDICAL;
   } else if (type === 'ACCIDENT') {
-    color = '#f4b400';
+    color = '#f59e0b';
     svgPath = SVG_ICONS.ACCIDENT;
   }
 
@@ -44,12 +40,12 @@ const getMarkerIcon = (type, status, name = '') => {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
         background-color: ${color};
-        border: 3px solid #ffffff;
+        border: 2.5px solid #ffffff;
         border-radius: 50%;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.35);
         color: #ffffff;
       ">
         ${svgEncoded}
@@ -67,8 +63,8 @@ const getMarkerIcon = (type, status, name = '') => {
       </div>
     `,
     className: '',
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
     popupAnchor: [0, -22]
   });
 };
@@ -118,14 +114,11 @@ function ChangeMapView({ center, zoom }) {
 }
 
 // Component to handle user location
-function UserLocationMarker({ setUserLocation, userLocation }) {
+function UserLocationMarker({ setUserLocation, userLocation, darkMode }) {
   const map = useMap();
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      console.warn('Geolocation is not supported');
-      return;
-    }
+    if (!navigator.geolocation) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -135,9 +128,7 @@ function UserLocationMarker({ setUserLocation, userLocation }) {
           map.setView(newPos, 15);
         }
       },
-      (err) => {
-        console.warn('Geolocation error:', err);
-      },
+      () => {},
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
 
@@ -147,8 +138,8 @@ function UserLocationMarker({ setUserLocation, userLocation }) {
   return userLocation ? (
     <Marker position={userLocation} icon={userIcon}>
       <Popup>
-        <div style={{ color: '#0f172a', fontSize: '14px', fontWeight: 'bold' }}>
-          Your location
+        <div style={{ color: darkMode ? '#f8fafc' : '#0f172a', fontSize: '13px', fontWeight: 800 }}>
+          Your Current Location
         </div>
       </Popup>
     </Marker>
@@ -195,20 +186,29 @@ export default function LeafletMap({
       zoom={zoom}
       style={{ width: '100%', height: '100%', borderRadius: '24px' }}
       zoomControl={true}
+      attributionControl={false}
     >
-      {/* CARTO tiles - high speed global CDN, no API key needed */}
-      <TileLayer
-        key={darkMode ? 'carto-dark' : 'carto-light'}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url={
-          darkMode
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-        }
-      />
+      {/* 100% Free, Standalone Esri tiles - Zero API keys, zero watermarks */}
+      {darkMode ? (
+        <>
+          <TileLayer
+            key="esri-dark-base"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          />
+          <TileLayer
+            key="esri-dark-ref"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+          />
+        </>
+      ) : (
+        <TileLayer
+          key="esri-street"
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+        />
+      )}
 
       <ChangeMapView center={userLocation || center} zoom={userLocation ? 15 : zoom} />
-      <UserLocationMarker setUserLocation={setUserLocation} userLocation={userLocation} />
+      <UserLocationMarker setUserLocation={setUserLocation} userLocation={userLocation} darkMode={darkMode} />
 
       {liveIncidents.map(inc => (
         <Marker
@@ -217,27 +217,44 @@ export default function LeafletMap({
           icon={getMarkerIcon(inc.type, inc.status)}
           eventHandlers={{ click: () => onMarkerClick && onMarkerClick(inc, 'incident') }}
         >
-          <Popup>
-            <div style={{ color: '#0f172a', minWidth: '180px' }}>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '900' }}>{inc.type} Report</h4>
-              <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>{inc.description}</p>
-              <div style={{ display: 'flex', gap: '8px', fontSize: '12px', flexWrap: 'wrap' }}>
+          <Popup className="ndrs-leaflet-popup">
+            <div style={{
+              color: darkMode ? '#f8fafc' : '#0f172a',
+              minWidth: '180px',
+              fontFamily: 'inherit',
+              padding: '4px 2px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '6px' }}>
+                <h4 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                  {inc.type}
+                </h4>
                 <span style={{
-                  padding: '4px 8px', borderRadius: '999px',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  fontSize: '11px',
+                  fontWeight: '700',
                   backgroundColor: inc.status === 'New' ? '#fee2e2' : '#dbeafe',
-                  color: inc.status === 'New' ? '#d92b2b' : '#174ea6', fontWeight: 'bold'
-                }}>{inc.status}</span>
-                {inc.severity && (
-                  <span style={{ 
-                    padding: '4px 8px', borderRadius: '999px',
-                    backgroundColor: inc.severity === 'CRITICAL' ? '#fee2e2' : '#fef3c7',
-                    color: inc.severity === 'CRITICAL' ? '#d92b2b' : '#92400e', fontWeight: 'bold'
-                  }}>{inc.severity}</span>
-                )}
+                  color: inc.status === 'New' ? '#dc2626' : '#2563eb'
+                }}>
+                  {inc.status}
+                </span>
               </div>
-              {inc.media && inc.media.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Attachments: {inc.media.length}</p>
+              <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: darkMode ? '#cbd5e1' : '#475569', lineHeight: '1.45' }}>
+                {inc.description}
+              </p>
+              {inc.severity && (
+                <div style={{ marginTop: 4 }}>
+                  <span style={{ 
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    fontSize: '10px',
+                    textTransform: 'uppercase',
+                    backgroundColor: inc.severity === 'CRITICAL' ? '#fee2e2' : '#fef3c7',
+                    color: inc.severity === 'CRITICAL' ? '#dc2626' : '#b45309',
+                    fontWeight: '800'
+                  }}>
+                    {inc.severity}
+                  </span>
                 </div>
               )}
             </div>

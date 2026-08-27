@@ -56,11 +56,13 @@ export default function MapView({ incidents = [], resources = [] }) {
           top: '16px',
           left: '50%',
           transform: 'translateX(-50%)',
-          background: 'rgba(255, 255, 255, 0.98)',
-          border: '1px solid rgba(16, 24, 40, 0.10)',
+          background: 'var(--ndrs-surface-glass)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid var(--ndrs-border)',
           borderRadius: '14px',
           padding: '8px',
-          boxShadow: 'var(--ndrs-shadow-sm)',
+          boxShadow: 'var(--ndrs-shadow)',
           display: 'flex',
           gap: '8px',
           zIndex: 1000
@@ -105,11 +107,11 @@ export default function MapView({ incidents = [], resources = [] }) {
       {/* Right side: Details panel */}
       {selectedItem && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid rgba(16, 24, 40, 0.10)',
+          background: 'var(--ndrs-surface)',
+          border: '1px solid var(--ndrs-border)',
           borderRadius: '16px',
           padding: '20px',
-          boxShadow: 'var(--ndrs-shadow-sm)',
+          boxShadow: 'var(--ndrs-shadow)',
           display: 'flex',
           flexDirection: 'column',
           gap: '16px'
@@ -129,8 +131,8 @@ export default function MapView({ incidents = [], resources = [] }) {
             <button
               onClick={() => setSelectedItem(null)}
               style={{
-                background: 'rgba(16, 24, 40, 0.05)',
-                border: 'none',
+                background: 'var(--ndrs-canvas)',
+                border: '1px solid var(--ndrs-border)',
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
