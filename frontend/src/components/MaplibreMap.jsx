@@ -1,25 +1,20 @@
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { 
-  Flame, Droplets, HeartPulse, Car, ShieldAlert, AlertTriangle, 
-  Mountain, Wind, Zap, MapPin, Loader2
-} from 'lucide-react';
-import ReactDOMServer from 'react-dom/server';
+import { Loader2, MapPin } from 'lucide-react';
 
-const getIncidentIcon = (type) => {
-  switch (type) {
-    case 'FIRE':       return <Flame size={20} color="white" />;
-    case 'FLOOD':      return <Droplets size={20} color="white" />;
-    case 'MEDICAL':    return <HeartPulse size={20} color="white" />;
-    case 'ACCIDENT':   return <Car size={20} color="white" />;
-    case 'POLICE':     return <ShieldAlert size={20} color="white" />;
-    case 'EARTHQUAKE': return <AlertTriangle size={20} color="white" />;
-    case 'LANDSLIDE':  return <Mountain size={20} color="white" />;
-    case 'STORM':      return <Wind size={20} color="white" />;
-    case 'POWER':      return <Zap size={20} color="white" />;
-    default:           return <AlertTriangle size={20} color="white" />;
-  }
+const SVG_ICONS = {
+  FIRE: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+  FLOOD: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>`,
+  MEDICAL: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`,
+  ACCIDENT: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17H5v-5l2-7h10l2 7z"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>`,
+  POLICE: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+  DEFAULT: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  PIN: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`
+};
+
+const getIncidentSvg = (type) => {
+  return SVG_ICONS[type] || SVG_ICONS.DEFAULT;
 };
 
 const INCIDENT_COLORS = {
@@ -104,53 +99,65 @@ export default function MaplibreMap({
     setMapLoaded(false);
     setMapError(false);
 
-    const m = new maplibregl.Map({
-      container: mapContainer.current,
-      style: buildRasterStyle(darkMode),
-      center: [center[1], center[0]],
-      zoom,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-      attributionControl: false,
-    });
-
-    map.current = m;
-
-    m.on('load', () => setMapLoaded(true));
-    m.on('error', () => setMapError(true));
-
-    requestAnimationFrame(() => m.resize());
-    if ('ResizeObserver' in window) {
-      resizeObserver.current = new ResizeObserver(() => {
-        requestAnimationFrame(() => m.resize());
+    let m;
+    try {
+      m = new maplibregl.Map({
+        container: mapContainer.current,
+        style: buildRasterStyle(darkMode),
+        center: [center[1], center[0]],
+        zoom,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
+        attributionControl: false,
       });
-      resizeObserver.current.observe(mapContainer.current);
-    }
 
-    const handleResize = () => m.resize();
-    window.addEventListener('orientationchange', handleResize);
-    window.addEventListener('resize', handleResize);
+      map.current = m;
 
-    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+      m.on('load', () => setMapLoaded(true));
+      m.on('error', () => setMapError(true));
 
-    // Low-accuracy user location (fast: uses WiFi/cell, not GPS)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          m.setCenter([pos.coords.longitude, pos.coords.latitude]);
-        },
-        () => {},
-        { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-      );
+      requestAnimationFrame(() => m.resize());
+      if ('ResizeObserver' in window) {
+        resizeObserver.current = new ResizeObserver(() => {
+          requestAnimationFrame(() => m.resize());
+        });
+        resizeObserver.current.observe(mapContainer.current);
+      }
+
+      const handleResize = () => m.resize();
+      window.addEventListener('orientationchange', handleResize);
+      window.addEventListener('resize', handleResize);
+
+      m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+
+      // User location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (m && map.current) {
+              m.setCenter([pos.coords.longitude, pos.coords.latitude]);
+            }
+          },
+          () => {},
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        );
+      }
+    } catch (e) {
+      console.warn('Map initialization note:', e);
+      setMapError(true);
     }
 
     return () => {
       resizeObserver.current?.disconnect();
       resizeObserver.current = null;
-      window.removeEventListener('orientationchange', handleResize);
-      window.removeEventListener('resize', handleResize);
-      m.remove();
+      if (m) {
+        try {
+          m.remove();
+        } catch {
+          // ignore cleanup errors
+        }
+      }
       map.current = null;
     };
   }, [darkMode]);
@@ -163,6 +170,8 @@ export default function MaplibreMap({
     markers.current = [];
 
     liveIncidents.forEach(incident => {
+      if (!incident.location || typeof incident.location.lat !== 'number' || typeof incident.location.lng !== 'number') return;
+
       const el = document.createElement('div');
       const color = INCIDENT_COLORS[incident.type] || INCIDENT_COLORS.default;
       el.style.cssText = `
@@ -172,7 +181,7 @@ export default function MaplibreMap({
         display:flex;align-items:center;justify-content:center;
         cursor:pointer;
       `;
-      el.innerHTML = ReactDOMServer.renderToString(getIncidentIcon(incident.type));
+      el.innerHTML = getIncidentSvg(incident.type);
 
       const popupBg = darkMode ? '#0f172a' : '#ffffff';
       const popupText = darkMode ? '#f8fafc' : '#0f172a';
@@ -203,7 +212,7 @@ export default function MaplibreMap({
     });
 
     // Draggable confirm-location marker
-    if (onLocationSelect && selectedLocation) {
+    if (onLocationSelect && selectedLocation && typeof selectedLocation.lat === 'number' && typeof selectedLocation.lng === 'number') {
       const pin = document.createElement('div');
       pin.style.cssText = `
         width:48px;height:48px;border-radius:50%;
@@ -211,7 +220,7 @@ export default function MaplibreMap({
         box-shadow:0 4px 16px rgba(220,38,38,0.5);
         display:flex;align-items:center;justify-content:center;cursor:grab;
       `;
-      pin.innerHTML = ReactDOMServer.renderToString(<MapPin size={24} color="white" />);
+      pin.innerHTML = SVG_ICONS.PIN;
 
       const confirmMarker = new maplibregl.Marker({ element: pin, anchor: 'center', draggable: true })
         .setLngLat([selectedLocation.lng, selectedLocation.lat])
@@ -228,9 +237,19 @@ export default function MaplibreMap({
   // Fit map to show all incidents
   useEffect(() => {
     if (!map.current || !mapLoaded || liveIncidents.length === 0) return;
-    const bounds = new maplibregl.LngLatBounds();
-    liveIncidents.forEach(i => bounds.extend([i.location.lng, i.location.lat]));
-    map.current.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 500 });
+    try {
+      const bounds = new maplibregl.LngLatBounds();
+      liveIncidents.forEach(i => {
+        if (i.location && typeof i.location.lat === 'number' && typeof i.location.lng === 'number') {
+          bounds.extend([i.location.lng, i.location.lat]);
+        }
+      });
+      if (!bounds.isEmpty()) {
+        map.current.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 500 });
+      }
+    } catch {
+      // ignore fitBounds calculation errors
+    }
   }, [liveIncidents, mapLoaded]);
 
   return (

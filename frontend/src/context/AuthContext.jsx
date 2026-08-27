@@ -6,7 +6,13 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('ndrs_token'));
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem('ndrs_token');
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,20 +24,25 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function fetchMe() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
     try {
       const res = await fetch(`${API_BASE}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         setUser(data);
       } else {
-        // Token invalid — clear it
         logout();
       }
     } catch {
       logout();
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   }
@@ -45,7 +56,11 @@ export function AuthProvider({ children }) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
 
-    localStorage.setItem('ndrs_token', data.token);
+    try {
+      localStorage.setItem('ndrs_token', data.token);
+    } catch {
+      // ignore
+    }
     setToken(data.token);
     setUser(data.user);
     return data.user;
@@ -60,14 +75,22 @@ export function AuthProvider({ children }) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Signup failed');
 
-    localStorage.setItem('ndrs_token', data.token);
+    try {
+      localStorage.setItem('ndrs_token', data.token);
+    } catch {
+      // ignore
+    }
     setToken(data.token);
     setUser(data.user);
     return data.user;
   }
 
   function logout() {
-    localStorage.removeItem('ndrs_token');
+    try {
+      localStorage.removeItem('ndrs_token');
+    } catch {
+      // ignore
+    }
     setToken(null);
     setUser(null);
   }
