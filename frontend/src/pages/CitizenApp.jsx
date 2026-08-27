@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock, Settings } from 'lucide-react';
+import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock, Settings, Menu } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import TimeAgo from '../components/TimeAgo';
@@ -31,6 +31,7 @@ export default function CitizenApp() {
   const { darkMode } = useTheme();
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isResolved = (incident) => incident?.status?.toLowerCase() === 'resolved';
   const isMobile = viewportWidth < 640;
@@ -1003,7 +1004,9 @@ export default function CitizenApp() {
         paddingTop: 16,
         paddingBottom: 16,
         marginTop: 6,
-        boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.1)',
+        marginLeft: isMobile ? 0 : (sidebarOpen ? 240 : 80),
+        transition: 'margin-left 0.3s ease',
       }}>
         <div style={{
           maxWidth: 1200,
@@ -1074,15 +1077,18 @@ export default function CitizenApp() {
       <main style={{
         flex: 1,
         maxWidth: 1200,
-        marginLeft: 'auto',
+        marginLeft: isMobile ? 'auto' : (sidebarOpen ? 'calc(240px + auto)' : 'calc(80px + auto)'),
         marginRight: 'auto',
-        paddingLeft: pagePadding,
+        paddingLeft: isMobile ? pagePadding : (sidebarOpen ? 240 + pagePadding : 80 + pagePadding),
         paddingRight: pagePadding,
         paddingTop: 32,
         paddingBottom: 100,
         width: '100%',
+        transition: 'padding-left 0.3s ease',
       }}>
-        {renderContent()}
+        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+          {renderContent()}
+        </div>
       </main>
 
       {/* Mobile Bottom Nav */}
@@ -1146,65 +1152,96 @@ export default function CitizenApp() {
         })}
       </nav>
 
-      {/* Desktop Side Nav */}
-      <nav style={{
-        display: isMobile ? 'none' : 'flex',
-        position: 'fixed',
-        left: 24,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        flexDirection: 'column',
-        gap: 8,
-        backgroundColor: darkMode ? '#0f172a' : 'white',
-        padding: 12,
-        borderRadius: 24,
-        border: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`,
-        boxShadow: darkMode ? '0 4px 6px -1px rgba(0,0,0,0.4)' : '0 4px 6px -1px rgba(0,0,0,0.1)',
-        zIndex: 50,
-      }}>
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <aside style={{
+          position: 'fixed',
+          top: 6,
+          left: 0,
+          bottom: 0,
+          width: sidebarOpen ? 240 : 80,
+          backgroundColor: darkMode ? '#0f172a' : 'white',
+          borderRight: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`,
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.3s ease',
+          zIndex: 50,
+          boxShadow: darkMode ? '4px 0 10px rgba(0,0,0,0.2)' : '4px 0 10px rgba(0,0,0,0.05)',
+        }}>
+          <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: sidebarOpen ? 'flex-end' : 'center', borderBottom: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`, minHeight: 76 }}>
             <button
-              key={item.id}
-              onClick={() => {
-                if (item.isAction) {
-                  setShowSettingsModal(true);
-                } else {
-                  setActiveTab(item.id);
-                }
-              }}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               style={{
-                width: 48,
-                height: 48,
+                background: 'transparent',
+                border: 'none',
+                color: darkMode ? '#94a3b8' : '#64748b',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 16,
+                padding: 8,
+                borderRadius: 8,
                 transition: 'all 0.2s ease',
-                backgroundColor: isActive ? 'rgba(37,99,235,0.1)' : 'transparent',
-                color: isActive ? (darkMode ? '#60a5fa' : '#2563eb') : (darkMode ? '#94a3b8' : '#64748b'),
-                border: 'none',
-                cursor: 'pointer',
               }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = darkMode ? '#1e293b' : '#f1f5f9';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-              title={item.label}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = darkMode ? '#1e293b' : '#f1f5f9'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              title="Toggle Sidebar"
             >
-              <Icon size={24} />
+              <Menu size={24} />
             </button>
-          );
-        })}
-      </nav>
+          </div>
+
+          <div style={{ flex: 1, padding: '24px 12px', display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (item.isAction) {
+                      setShowSettingsModal(true);
+                    } else {
+                      setActiveTab(item.id);
+                    }
+                  }}
+                  title={!sidebarOpen ? item.label : undefined}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                    gap: 12,
+                    padding: sidebarOpen ? '12px 16px' : '14px 0',
+                    borderRadius: 12,
+                    transition: 'all 0.2s ease',
+                    backgroundColor: isActive ? 'rgba(37,99,235,0.1)' : 'transparent',
+                    color: isActive ? (darkMode ? '#60a5fa' : '#2563eb') : (darkMode ? '#94a3b8' : '#64748b'),
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = darkMode ? '#1e293b' : '#f1f5f9';
+                      e.currentTarget.style.color = darkMode ? '#f8fafc' : '#0f172a';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = darkMode ? '#94a3b8' : '#64748b';
+                    }
+                  }}
+                >
+                  <Icon size={22} style={{ flexShrink: 0 }} />
+                  {sidebarOpen && <span style={{ fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap' }}>{item.label}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+      )}
 
       {/* Report Form Modal */}
       {showReportForm && (
