@@ -491,8 +491,62 @@ export default function MaplibreMap({
     }
   }, [selectedLocation, onLocationSelect]);
 
+  const handleLocateMe = () => {
+    const map = mapRef.current;
+    if (!map || !userLocRef.current) {
+      // No cached position yet — try a one-shot
+      navigator.geolocation?.getCurrentPosition(
+        (pos) => {
+          const coords = [pos.coords.longitude, pos.coords.latitude];
+          userLocRef.current = coords;
+          map?.flyTo({ center: coords, zoom: 16, duration: 1000 });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+      return;
+    }
+    map.flyTo({ center: userLocRef.current, zoom: 16, duration: 1000 });
+  };
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 320 }}>
+      {/* Locate Me Button */}
+      <button
+        type="button"
+        onClick={handleLocateMe}
+        title="Go to my location"
+        style={{
+          position: 'absolute',
+          bottom: 120,
+          right: 12,
+          zIndex: 10,
+          width: 36,
+          height: 36,
+          borderRadius: '50%',
+          border: 'none',
+          backgroundColor: darkMode ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.25)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={darkMode ? '#94a3b8' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v4" />
+          <path d="M12 18v4" />
+          <path d="M2 12h4" />
+          <path d="M18 12h4" />
+        </svg>
+      </button>
+
       {/* Map Container */}
       <div
         ref={containerRef}
