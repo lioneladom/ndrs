@@ -999,14 +999,13 @@ export default function CitizenApp() {
       <header style={{
         backgroundColor: darkMode ? '#0f172a' : 'white',
         borderBottom: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`,
-        paddingLeft: pagePadding,
+        paddingLeft: isMobile ? pagePadding : (sidebarOpen ? 240 + pagePadding : 80 + pagePadding),
         paddingRight: pagePadding,
         paddingTop: 16,
         paddingBottom: 16,
         marginTop: 6,
         boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.1)',
-        marginLeft: isMobile ? 0 : (sidebarOpen ? 240 : 80),
-        transition: 'margin-left 0.3s ease',
+        transition: 'padding-left 0.3s ease',
       }}>
         <div style={{
           maxWidth: 1200,
@@ -1014,24 +1013,26 @@ export default function CitizenApp() {
           marginRight: 'auto',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: isMobile ? 'space-between' : 'flex-end',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44,
-              height: 44,
-              borderRadius: 14,
-              background: darkMode ? '#1e293b' : '#eff6ff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: darkMode ? '#38bdf8' : '#2563eb',
-              border: `1px solid ${darkMode ? '#334155' : '#dbeafe'}`
-            }}>
-              <HandHelping size={24} />
+          {isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                background: darkMode ? '#1e293b' : '#eff6ff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: darkMode ? '#38bdf8' : '#2563eb',
+                border: `1px solid ${darkMode ? '#334155' : '#dbeafe'}`
+              }}>
+                <HandHelping size={24} />
+              </div>
+              <span style={{ fontWeight: 900, fontSize: 24, color: darkMode ? '#f8fafc' : '#0f172a', fontFamily: 'var(--font-title)' }}>NDRS Ghana</span>
             </div>
-            <span style={{ fontWeight: 900, fontSize: 24, color: darkMode ? '#f8fafc' : '#0f172a', fontFamily: 'var(--font-title)' }}>NDRS Ghana</span>
-          </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{
@@ -1042,51 +1043,19 @@ export default function CitizenApp() {
             }}>
               {user?.name}
             </span>
-            <button
-              onClick={() => setShowSettingsModal(true)}
-              aria-label="Settings"
-              title="Settings & Profile"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                color: darkMode ? '#f8fafc' : '#0f172a',
-                background: darkMode ? '#1e293b' : 'white',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
-                e.currentTarget.style.color = 'var(--ndrs-blue)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = darkMode ? '#334155' : '#e2e8f0';
-                e.currentTarget.style.color = darkMode ? '#f8fafc' : '#0f172a';
-              }}
-            >
-              <Settings size={20} />
-            </button>
           </div>
         </div>
       </header>
 
       <main style={{
         flex: 1,
-        maxWidth: 1200,
-        marginLeft: isMobile ? 'auto' : (sidebarOpen ? 'calc(240px + auto)' : 'calc(80px + auto)'),
-        marginRight: 'auto',
-        paddingLeft: isMobile ? pagePadding : (sidebarOpen ? 240 + pagePadding : 80 + pagePadding),
-        paddingRight: pagePadding,
+        width: '100%',
+        paddingLeft: isMobile ? 0 : (sidebarOpen ? 240 : 80),
         paddingTop: 32,
         paddingBottom: 100,
-        width: '100%',
         transition: 'padding-left 0.3s ease',
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', paddingLeft: pagePadding, paddingRight: pagePadding }}>
           {renderContent()}
         </div>
       </main>
