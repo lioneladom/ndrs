@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
+import { useTheme } from '../context/ThemeContext';
 
 // ─── SVG Icon Paths ────────────────────────────────────────────────────────────
 const SVG_ICONS = {
@@ -160,7 +161,10 @@ export default function LeafletMap({
   incidents = [],
   resources = [],
   onMarkerClick = null,
+  darkMode: propDarkMode
 }) {
+  const themeContext = useTheme();
+  const darkMode = propDarkMode !== undefined ? propDarkMode : themeContext?.darkMode;
   const [userLocation, setUserLocation] = useState(null);
   const liveIncidents = useMemo(
     () => incidents.filter((incident) => !isResolved(incident)),
@@ -192,10 +196,15 @@ export default function LeafletMap({
       style={{ width: '100%', height: '100%', borderRadius: '24px' }}
       zoomControl={true}
     >
-      {/* Carto Voyager tiles - clean, modern map style */}
+      {/* CARTO tiles - high speed global CDN, no API key needed */}
       <TileLayer
+        key={darkMode ? 'carto-dark' : 'carto-light'}
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url={
+          darkMode
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+        }
       />
 
       <ChangeMapView center={userLocation || center} zoom={userLocation ? 15 : zoom} />
