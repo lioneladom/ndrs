@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock, Settings } from 'lucide-react';
-import MaplibreMap from '../components/MaplibreMap';
+import LeafletMap from '../components/LeafletMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import TimeAgo from '../components/TimeAgo';
 import SettingsModal from '../components/SettingsModal';
@@ -470,7 +470,7 @@ export default function CitizenApp() {
               border: `1px solid ${darkMode ? '#1e293b' : '#e2e8f0'}`,
               boxShadow: darkMode ? '0 4px 6px -1px rgba(0,0,0,0.4)' : '0 4px 6px -1px rgba(0,0,0,0.1)',
             }}>
-              <MaplibreMap
+              <LeafletMap
                 darkMode={darkMode}
                 incidents={incidents}
                 resources={resources}
@@ -1646,12 +1646,13 @@ export default function CitizenApp() {
             flex: 1,
             position: 'relative',
           }}>
-            <MaplibreMap
+            <LeafletMap
               center={[tempLocation.lat, tempLocation.lng]}
               zoom={16}
               incidents={incidents}
               selectedLocation={tempLocation}
               onLocationSelect={(loc) => setTempLocation(loc)}
+              darkMode={darkMode}
             />
           </div>
           <div style={{

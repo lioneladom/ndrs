@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, Shield, Users, MapPin, Bell, CheckCircle, XCircle, Clock, Flame, Droplets, HeartPulse, Car, TrendingUp, Moon, Sun, KeyRound, Settings } from 'lucide-react';
-import MaplibreMap from '../components/MaplibreMap';
+import LeafletMap from '../components/LeafletMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import TimeAgo from '../components/TimeAgo';
 import SettingsModal from '../components/SettingsModal';
@@ -382,7 +382,7 @@ export default function AdminDashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: viewportWidth < 1100 ? '1fr' : 'minmax(0, 2fr) minmax(320px, 1fr)', gap: pagePadding }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={{ height: isNarrow ? 380 : 500, borderRadius: 24, overflow: 'hidden', border: `1px solid ${border}`, boxShadow: cardShadow, backgroundColor: surface }}>
-                  <MaplibreMap
+                  <LeafletMap
                     incidents={incidents}
                     resources={resources}
                     onMarkerClick={(inc) => setSelectedIncident(inc)}
