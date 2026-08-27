@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, Shield, Users, MapPin, Bell, CheckCircle, XCircle, Clock, Flame, Droplets, HeartPulse, Car, TrendingUp, Moon, Sun, KeyRound } from 'lucide-react';
+import { LogOut, Shield, Users, MapPin, Bell, CheckCircle, XCircle, Clock, Flame, Droplets, HeartPulse, Car, TrendingUp, Moon, Sun, KeyRound, Settings } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import TimeAgo from '../components/TimeAgo';
+import SettingsModal from '../components/SettingsModal';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { api, socket } from '../utils/api';
@@ -20,6 +21,7 @@ export default function AdminDashboard() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordStatus, setPasswordStatus] = useState({ type: '', message: '' });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
 
   const isResolved = (incident) => incident?.status?.toLowerCase() === 'resolved';
@@ -168,14 +170,47 @@ export default function AdminDashboard() {
         paddingRight: pagePadding,
         flexShrink: 0
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: isCompact ? 20 : 40 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#174ea6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-            <Shield size={24} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: isCompact ? 20 : 36 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#174ea6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', flexShrink: 0 }}>
+              <Shield size={22} />
+            </div>
+            <div>
+              <h1 style={{ fontWeight: 900, fontSize: 18, color: text, fontFamily: 'var(--font-title)', margin: 0 }}>NDRS EOC</h1>
+              <p style={{ fontSize: 12, color: muted, fontWeight: 600, margin: 0 }}>{user?.name}</p>
+            </div>
           </div>
-          <div>
-            <h1 style={{ fontWeight: 900, fontSize: 20, color: text, fontFamily: 'var(--font-title)' }}>NDRS EOC</h1>
-            <p style={{ fontSize: 14, color: muted, fontWeight: 500 }}>{user?.name}</p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSettingsModal(true)}
+            aria-label="Settings"
+            title="Settings & Profile"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              border: `1px solid ${border}`,
+              backgroundColor: soft,
+              color: text,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
+              e.currentTarget.style.color = 'var(--ndrs-blue)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = border;
+              e.currentTarget.style.color = text;
+            }}
+          >
+            <Settings size={18} />
+          </button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: isCompact ? 'row' : 'column', gap: 8, flex: 1, overflowX: isCompact ? 'auto' : 'visible', paddingBottom: isCompact ? 4 : 0 }}>
@@ -630,6 +665,9 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );
 }

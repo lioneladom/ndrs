@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock } from 'lucide-react';
+import { LogOut, Home, FileText, Map, BookOpen, Bell, MapPin, Flame, Droplets, HeartPulse, Car, X, Upload, Loader2, CheckCircle2, Camera, User, Moon, Sun, AlertTriangle, Wind, Zap, ShieldAlert, Mountain, HandHelping, Clock, Settings } from 'lucide-react';
 import MaplibreMap from '../components/MaplibreMap';
 import IncidentAttachments from '../components/IncidentAttachments';
 import TimeAgo from '../components/TimeAgo';
+import SettingsModal from '../components/SettingsModal';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { api, socket } from '../utils/api';
@@ -28,7 +28,7 @@ export default function CitizenApp() {
   const [tempLocation, setTempLocation] = useState(null);
   const [selectedResource, setSelectedResource] = useState(null);
   const { darkMode } = useTheme();
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
 
   const isResolved = (incident) => incident?.status?.toLowerCase() === 'resolved';
@@ -1028,86 +1028,43 @@ export default function CitizenApp() {
             <span style={{ fontWeight: 900, fontSize: 24, color: darkMode ? '#f8fafc' : '#0f172a', fontFamily: 'var(--font-title)' }}>NDRS Ghana</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{
               display: isMobile ? 'none' : 'block',
-              fontWeight: 600,
+              fontWeight: 700,
+              fontSize: 14,
               color: darkMode ? '#f8fafc' : '#0f172a'
             }}>
               {user?.name}
             </span>
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
+              onClick={() => setShowSettingsModal(true)}
+              aria-label="Settings"
+              title="Settings & Profile"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 8,
-                padding: '8px 16px',
+                justifyContent: 'center',
+                width: 42,
+                height: 42,
                 borderRadius: 12,
                 border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                color: darkMode ? '#94a3b8' : '#64748b',
-                fontWeight: 600,
+                color: darkMode ? '#f8fafc' : '#0f172a',
                 background: darkMode ? '#1e293b' : 'white',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = darkMode ? '#334155' : '#f8fafc';
+                e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
+                e.currentTarget.style.color = 'var(--ndrs-blue)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = darkMode ? '#1e293b' : 'white';
+                e.currentTarget.style.borderColor = darkMode ? '#334155' : '#e2e8f0';
+                e.currentTarget.style.color = darkMode ? '#f8fafc' : '#0f172a';
               }}
             >
-              <User size={18} />
+              <Settings size={20} />
             </button>
-
-            {showUserMenu && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: 8,
-                backgroundColor: darkMode ? '#1e293b' : 'white',
-                borderRadius: 16,
-                border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                padding: 8,
-                zIndex: 1000,
-                minWidth: 200,
-              }}>
-
-                <button
-                  onClick={() => {
-                    logout();
-                    setShowUserMenu(false);
-                  }}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 16px',
-                    borderRadius: 12,
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: darkMode ? '#f8fafc' : '#0f172a',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = darkMode ? '#334155' : '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  <LogOut size={18} />
-                  Logout
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </header>
@@ -1842,6 +1799,8 @@ export default function CitizenApp() {
           </div>
         </div>
       )}
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );
 }

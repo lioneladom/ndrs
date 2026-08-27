@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Plus, RotateCcw, Shield, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, RotateCcw, Shield, Trash2, Settings, UserPlus } from 'lucide-react';
 import { api } from '../utils/api.js';
+import { useTheme } from '../context/ThemeContext.jsx';
+import SettingsModal from '../components/SettingsModal.jsx';
 
 const blankForm = { name: '', email: '', phone: '', password: '' };
 
@@ -10,7 +12,10 @@ export default function SuperAdminPanel() {
   const [form, setForm] = useState(blankForm);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth);
+  const { darkMode } = useTheme();
+
   const isCompact = viewportWidth < 900;
   const isMobile = viewportWidth < 640;
 
@@ -62,7 +67,8 @@ export default function SuperAdminPanel() {
   return (
     <div style={{ 
       display: 'flex', minHeight: '100vh', flexDirection: isCompact ? 'column' : 'row',
-      backgroundColor: 'var(--ndrs-canvas)' 
+      backgroundColor: 'var(--ndrs-canvas)',
+      color: 'var(--ndrs-ink)'
     }}>
       {/* Ghana stripe */}
       <div style={{
@@ -72,26 +78,62 @@ export default function SuperAdminPanel() {
       
       {/* Sidebar */}
       <aside style={{
-        width: isCompact ? '100%' : 260, backgroundColor: '#fff',
+        width: isCompact ? '100%' : 260,
+        backgroundColor: 'var(--ndrs-surface)',
         borderRight: isCompact ? 'none' : '1px solid var(--ndrs-border)',
         borderBottom: isCompact ? '1px solid var(--ndrs-border)' : 'none',
         paddingTop: isCompact ? 28 : 50, paddingBottom: isCompact ? 16 : 24, paddingLeft: isMobile ? 16 : 24, paddingRight: isMobile ? 16 : 24,
         display: 'flex', flexDirection: 'column', flexShrink: 0
       }}>
-        <div style={{ marginBottom: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 14,
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--ndrs-green)'
-          }}>
-            <Shield size={24} />
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 18 }}>
-              Super Admin
+        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 14,
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--ndrs-green)'
+            }}>
+              <Shield size={22} />
+            </div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 17, color: 'var(--ndrs-ink)' }}>
+                Super Admin
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--ndrs-muted)', fontWeight: 600 }}>
+                User Access Center
+              </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSettingsModal(true)}
+            aria-label="Settings"
+            title="Settings & Profile"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              border: '1px solid var(--ndrs-border)',
+              backgroundColor: 'var(--ndrs-canvas)',
+              color: 'var(--ndrs-ink)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--ndrs-blue)';
+              e.currentTarget.style.color = 'var(--ndrs-blue)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--ndrs-border)';
+              e.currentTarget.style.color = 'var(--ndrs-ink)';
+            }}
+          >
+            <Settings size={18} />
+          </button>
         </div>
 
         <Link 
@@ -99,11 +141,11 @@ export default function SuperAdminPanel() {
           style={{
             display: 'flex', alignItems: 'center', gap: 10,
             padding: '12px 14px', borderRadius: 12, textDecoration: 'none',
-            color: 'var(--ndrs-muted)', fontWeight: 700, marginBottom: 4,
+            color: 'var(--ndrs-muted)', fontWeight: 700, marginBottom: 6,
             transition: 'all 0.2s ease'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)';
+            e.currentTarget.style.backgroundColor = 'var(--ndrs-canvas)';
             e.currentTarget.style.color = 'var(--ndrs-ink)';
           }}
           onMouseLeave={(e) => {
@@ -122,7 +164,7 @@ export default function SuperAdminPanel() {
             fontWeight: 800, border: 'none', cursor: 'default'
           }}
         >
-          <Plus size={18} /> Admin Users
+          <Plus size={18} /> Admin Accounts
         </button>
       </aside>
 
@@ -134,104 +176,96 @@ export default function SuperAdminPanel() {
         }}>
           {/* Create Admin section */}
           <section style={{
-            background: '#fff', border: '1px solid var(--ndrs-border)',
-            borderRadius: 20, padding: isMobile ? 20 : 32, boxShadow: 'var(--ndrs-shadow-sm)'
+            background: 'var(--ndrs-surface)',
+            border: '1px solid var(--ndrs-border)',
+            borderRadius: 20, padding: isMobile ? 20 : 28, boxShadow: 'var(--ndrs-shadow)'
           }}>
-            <h1 style={{ 
-              fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 24,
-              marginBottom: 6
-            }}>
-              Create admin
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                backgroundColor: 'var(--ndrs-blue-soft)', color: 'var(--ndrs-blue)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}>
+                <UserPlus size={16} />
+              </div>
+              <h1 style={{ 
+                fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 20,
+                color: 'var(--ndrs-ink)', margin: 0
+              }}>
+                Create admin
+              </h1>
+            </div>
+
             <p style={{ 
-              color: 'var(--ndrs-muted)', marginBottom: 24, fontSize: 14 
+              color: 'var(--ndrs-muted)', marginBottom: 20, fontSize: 13 
             }}>
               Add dispatchers and emergency coordinators.
             </p>
 
-            <form onSubmit={createAdmin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <input
-                placeholder="Full name" value={form.name}
-                onChange={(e) => updateField('name', e.target.value)}
-                required
-                style={{
-                  width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
-                  fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-blue)';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 138, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-border)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
+            <form onSubmit={createAdmin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6, color: 'var(--ndrs-ink)' }}>Full Name</label>
+                <input
+                  placeholder="e.g. Kwame Mensah" value={form.name}
+                  onChange={(e) => updateField('name', e.target.value)}
+                  required
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 12,
+                    border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
+                    color: 'var(--ndrs-ink)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              </div>
 
-              <input
-                placeholder="Email" type="email" value={form.email}
-                onChange={(e) => updateField('email', e.target.value)}
-                required
-                style={{
-                  width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
-                  fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-blue)';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 138, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-border)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6, color: 'var(--ndrs-ink)' }}>Email Address</label>
+                <input
+                  placeholder="admin@ndrs.gov.gh" type="email" value={form.email}
+                  onChange={(e) => updateField('email', e.target.value)}
+                  required
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 12,
+                    border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
+                    color: 'var(--ndrs-ink)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              </div>
 
-              <input
-                placeholder="Phone" value={form.phone}
-                onChange={(e) => updateField('phone', e.target.value)}
-                style={{
-                  width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
-                  fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-blue)';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 138, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-border)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6, color: 'var(--ndrs-ink)' }}>Phone Number</label>
+                <input
+                  placeholder="+233 24 123 4567" value={form.phone}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 12,
+                    border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
+                    color: 'var(--ndrs-ink)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              </div>
 
-              <input
-                placeholder="Temporary password" type="password" value={form.password}
-                onChange={(e) => updateField('password', e.target.value)}
-                minLength={8} required
-                style={{
-                  width: '100%', padding: '14px 16px', borderRadius: 14,
-                  border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
-                  fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
-                  transition: 'all 0.2s ease'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-blue)';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(30, 58, 138, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = 'var(--ndrs-border)';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6, color: 'var(--ndrs-ink)' }}>Temporary Password</label>
+                <input
+                  placeholder="Minimum 8 characters" type="password" value={form.password}
+                  onChange={(e) => updateField('password', e.target.value)}
+                  minLength={8} required
+                  style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 12,
+                    border: '1px solid var(--ndrs-border)', backgroundColor: 'var(--ndrs-canvas)',
+                    color: 'var(--ndrs-ink)', fontSize: 14, outline: 'none', fontFamily: 'var(--font-body)',
+                    transition: 'all 0.2s ease'
+                  }}
+                />
+              </div>
 
               {error && (
                 <div style={{
-                  color: 'var(--ndrs-red)', fontSize: 13, fontWeight: 700
+                  padding: '10px 12px', borderRadius: 10,
+                  backgroundColor: 'var(--ndrs-red-soft)', color: 'var(--ndrs-red)', fontSize: 13, fontWeight: 700
                 }}>
                   {error}
                 </div>
@@ -241,73 +275,75 @@ export default function SuperAdminPanel() {
                 type="submit"
                 disabled={loading}
                 style={{
-                  width: '100%', padding: '14px 0', borderRadius: 14,
-                  background: loading ? 'rgba(30, 58, 138, 0.7)' : 'linear-gradient(135deg, var(--ndrs-blue), var(--ndrs-blue-700))',
+                  width: '100%', padding: '13px 0', borderRadius: 12,
+                  background: 'var(--ndrs-blue)',
                   color: '#fff', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
-                  fontWeight: 800, fontSize: 15, fontFamily: 'var(--font-title)',
-                  boxShadow: loading ? 'none' : '0 10px 22px rgba(30, 58, 138, 0.24)',
-                  transition: 'all 0.2s ease'
+                  fontWeight: 800, fontSize: 14, fontFamily: 'var(--font-title)',
+                  boxShadow: '0 4px 14px var(--ndrs-glow-blue)',
+                  transition: 'all 0.2s ease',
+                  marginTop: 4
                 }}
                 onMouseEnter={(e) => {
-                  if (!loading) e.target.style.transform = 'translateY(-2px)';
+                  if (!loading) e.target.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
                   if (!loading) e.target.style.transform = 'translateY(0)';
                 }}
               >
-                {loading ? 'Creating...' : 'Create admin'}
+                {loading ? 'Creating...' : 'Create Admin Account'}
               </button>
             </form>
           </section>
 
           {/* Admin list */}
           <section style={{
-            background: '#fff', border: '1px solid var(--ndrs-border)',
-            borderRadius: 20, padding: isMobile ? 20 : 32, boxShadow: 'var(--ndrs-shadow-sm)',
+            background: 'var(--ndrs-surface)',
+            border: '1px solid var(--ndrs-border)',
+            borderRadius: 20, padding: isMobile ? 18 : 28, boxShadow: 'var(--ndrs-shadow)',
             overflowX: 'auto'
           }}>
             <h1 style={{ 
-              fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 24,
-              marginBottom: 24
+              fontFamily: 'var(--font-title)', fontWeight: 900, fontSize: 20,
+              color: 'var(--ndrs-ink)', marginBottom: 20
             }}>
-              Admin accounts
+              Registered Admin Accounts
             </h1>
             <table style={{ 
-              width: '100%', borderCollapse: 'collapse', fontSize: 14
+              width: '100%', borderCollapse: 'collapse', fontSize: 13
             }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--ndrs-border)' }}>
                   <th style={{
-                    textAlign: 'left', padding: '12px 16px',
-                    fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    textAlign: 'left', padding: '12px 14px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
                     color: 'var(--ndrs-muted)', textTransform: 'uppercase'
                   }}>
                     Name
                   </th>
                   <th style={{
-                    textAlign: 'left', padding: '12px 16px',
-                    fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    textAlign: 'left', padding: '12px 14px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
                     color: 'var(--ndrs-muted)', textTransform: 'uppercase'
                   }}>
                     Email
                   </th>
                   <th style={{
-                    textAlign: 'left', padding: '12px 16px',
-                    fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    textAlign: 'left', padding: '12px 14px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
                     color: 'var(--ndrs-muted)', textTransform: 'uppercase'
                   }}>
                     Role
                   </th>
                   <th style={{
-                    textAlign: 'left', padding: '12px 16px',
-                    fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    textAlign: 'left', padding: '12px 14px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
                     color: 'var(--ndrs-muted)', textTransform: 'uppercase'
                   }}>
                     Status
                   </th>
                   <th style={{
-                    textAlign: 'left', padding: '12px 16px',
-                    fontSize: 11, fontWeight: 800, letterSpacing: 1,
+                    textAlign: 'right', padding: '12px 14px',
+                    fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
                     color: 'var(--ndrs-muted)', textTransform: 'uppercase'
                   }}>
                     Actions
@@ -325,64 +361,73 @@ export default function SuperAdminPanel() {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}>
                     <td style={{
-                      padding: '14px 16px', color: 'var(--ndrs-ink)',
-                      fontWeight: 600
+                      padding: '14px', color: 'var(--ndrs-ink)',
+                      fontWeight: 700
                     }}>
                       {admin.name}
                     </td>
                     <td style={{
-                      padding: '14px 16px', color: 'var(--ndrs-muted)'
+                      padding: '14px', color: 'var(--ndrs-muted)'
                     }}>
                       {admin.email}
                     </td>
                     <td style={{
-                      padding: '14px 16px', color: 'var(--ndrs-muted)'
-                    }}>
-                      {admin.role}
-                    </td>
-                    <td style={{
-                      padding: '14px 16px'
+                      padding: '14px', color: 'var(--ndrs-muted)'
                     }}>
                       <span style={{
-                        padding: '4px 10px', borderRadius: '999px',
+                        padding: '3px 8px', borderRadius: 6,
+                        backgroundColor: admin.role === 'super_admin' ? 'var(--ndrs-blue-soft)' : 'var(--ndrs-canvas)',
+                        color: admin.role === 'super_admin' ? 'var(--ndrs-blue)' : 'var(--ndrs-muted)',
+                        fontWeight: 700, fontSize: 11, textTransform: 'uppercase'
+                      }}>
+                        {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                      </span>
+                    </td>
+                    <td style={{
+                      padding: '14px'
+                    }}>
+                      <span style={{
+                        padding: '3px 9px', borderRadius: '999px',
                         backgroundColor: admin.status === 'suspended' ? 'var(--ndrs-red-soft)' : 'var(--ndrs-green-soft)',
                         color: admin.status === 'suspended' ? 'var(--ndrs-red)' : 'var(--ndrs-green)',
-                        fontWeight: 800, fontSize: 12
+                        fontWeight: 800, fontSize: 11
                       }}>
                         {admin.status}
                       </span>
                     </td>
                     <td style={{
-                      padding: '14px 16px'
+                      padding: '14px', textAlign: 'right'
                     }}>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ display: 'inline-flex', gap: 6 }}>
                         <button
                           title="Suspend or activate"
                           onClick={() => toggleStatus(admin)}
                           disabled={admin.role === 'super_admin'}
                           style={{
-                            width: 36, height: 36, borderRadius: 10,
+                            width: 34, height: 34, borderRadius: 8,
                             backgroundColor: 'var(--ndrs-canvas)',
                             border: '1px solid var(--ndrs-border)',
                             color: 'var(--ndrs-muted)', cursor: admin.role === 'super_admin' ? 'not-allowed' : 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: admin.role === 'super_admin' ? 0.4 : 1
                           }}
                         >
-                          <RotateCcw size={15} />
+                          <RotateCcw size={14} />
                         </button>
                         <button
                           title="Delete admin"
                           onClick={() => deleteAdmin(admin)}
                           disabled={admin.role === 'super_admin'}
                           style={{
-                            width: 36, height: 36, borderRadius: 10,
+                            width: 34, height: 34, borderRadius: 8,
                             backgroundColor: 'var(--ndrs-red-soft)',
                             border: '1px solid transparent',
                             color: 'var(--ndrs-red)', cursor: admin.role === 'super_admin' ? 'not-allowed' : 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: admin.role === 'super_admin' ? 0.4 : 1
                           }}
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -393,6 +438,9 @@ export default function SuperAdminPanel() {
           </section>
         </div>
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
     </div>
   );
 }

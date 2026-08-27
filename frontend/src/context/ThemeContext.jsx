@@ -2,9 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext();
 
+const STORAGE_KEY = 'ndrs_theme_mode';
+
 /**
  * Hook to use NDRS theme across the app.
- * Automatically follows the device's default color scheme preference.
+ * Follows device default theme and supports manual user toggle.
  */
 export function useTheme() {
   const context = useContext(ThemeContext);
@@ -15,23 +17,29 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
-  const [darkMode, setDarkMode] = useState(() => {
+  const [systemIsDark, setSystemIsDark] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
 
-  // Listen to device / browser default theme changes
+  const [themeMode, setThemeMode] = useState(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+    if (saved === 'dark' || saved === 'light') return saved;
+    return 'system';
+  });
+
+  // Listen to device default theme changes
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
-      setDarkMode(e.matches);
+      setSystemIsDark(e.matches);
     };
 
-    setDarkMode(mediaQuery.matches);
+    setSystemIsDark(mediaQuery.matches);
 
     if (mediaQuery.addEventListener) {
       mediaQuery.addEventListener('change', handleChange);
@@ -41,6 +49,8 @@ export function ThemeProvider({ children }) {
       return () => mediaQuery.removeListener(handleChange);
     }
   }, []);
+
+  const darkMode = themeMode === 'system' ? systemIsDark : themeMode === 'dark';
 
   // Apply dark mode class and data-theme to HTML root
   useEffect(() => {
@@ -65,12 +75,30 @@ export function ThemeProvider({ children }) {
     metaTheme.setAttribute('content', darkMode ? '#090d16' : '#f8fafc');
   }, [darkMode]);
 
+  const toggleTheme = () => {
+    const nextMode = darkMode ? 'light' : 'dark';
+    setThemeMode(nextMode);
+    localStorage.setItem(STORAGE_KEY, nextMode);
+  };
+
+  const setManualTheme = (mode) => {
+    setThemeMode(mode);
+    if (mode === 'system') {
+      localStorage.removeItem(STORAGE_KEY);
+    } else {
+      localStorage.setItem(STORAGE_KEY, mode);
+    }
+  };
+
   return (
     <ThemeContext.Provider
       value={{
         darkMode,
         isDark: darkMode,
-        theme: darkMode ? 'dark' : 'light'
+        theme: darkMode ? 'dark' : 'light',
+        themeMode,
+        toggleTheme,
+        setManualTheme
       }}
     >
       {children}
