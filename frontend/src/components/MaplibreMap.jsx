@@ -1,8 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useTheme } from '../context/ThemeContext';
-import { Sun, Moon } from 'lucide-react';
 
 // ─── OpenFreeMap Style URLs (100% free, no API key) ─────────────────────────
 const STYLES = {
@@ -55,16 +54,19 @@ async function getBrightLabelLayers() {
   }
 }
 
+// Aggressively inject and keep labels alive on Fiord.
+// Called on style.load, idle, and sourcedata to ensure labels always persist.
 function injectLabelsIntoFiord(map) {
+  if (!map) return;
   getBrightLabelLayers().then(layers => {
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map.getStyle()) return;
     layers.forEach(layer => {
-      if (!map.getLayer(layer.id)) {
-        try {
+      try {
+        if (!map.getLayer(layer.id)) {
           map.addLayer(layer);
-        } catch {
-          // Layer source may not be ready yet, ignore
         }
+      } catch {
+        // Source not ready yet — will retry on next idle/sourcedata
       }
     });
   });
@@ -246,22 +248,19 @@ export default function MaplibreMap({
   const pinMarkerRef = useRef(null);
   const userLocRef = useRef(null);
 
-  // Bright for light mode, Fiord for dark mode
-  const [activeStyle, setActiveStyle] = useState(() => (darkMode ? 'fiord' : 'bright'));
-
-  // Sync style with theme
-  useEffect(() => {
-    setActiveStyle(darkMode ? 'fiord' : 'bright');
-  }, [darkMode]);
+  // Bright for light mode, Fiord for dark mode — no user toggle
+  const activeStyle = darkMode ? 'fiord' : 'bright';
 
   // ── Initialize Map ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
     injectPulseCSS();
 
+    const initialStyle = darkMode ? 'fiord' : 'bright';
+
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: STYLES[activeStyle] || STYLES.bright,
+      style: STYLES[initialStyle] || STYLES.bright,
       center: [center[1], center[0]], // MapLibre uses [lng, lat]
       zoom: zoom,
       attributionControl: false,
@@ -269,9 +268,15 @@ export default function MaplibreMap({
 
     map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
 
-    // Inject missing POI labels into Fiord when style loads
-    map.on('load', () => {
-      if (activeStyle === 'fiord') {
+    // Persistent listener: re-inject Fiord labels on every idle cycle
+    // This ensures labels survive any internal style reload or tile refresh
+    map.on('idle', () => {
+      const currentStyleUrl = map.getStyle()?.metadata?.['openmaptiles:version'] !== undefined
+        || map.getStyle()?.name?.toLowerCase()?.includes('fiord')
+        || map._mapId; // fallback — always try
+      // Check if any of our injected layers are missing
+      const needsLabels = !map.getLayer('poi_r1');
+      if (needsLabels && activeStyleRef.current === 'fiord') {
         injectLabelsIntoFiord(map);
       }
     });
@@ -289,7 +294,11 @@ export default function MaplibreMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only init once
 
-  // ── Switch style on demand ──────────────────────────────────────────────
+  // Keep a ref so the idle listener can read the current style
+  const activeStyleRef = useRef(activeStyle);
+  activeStyleRef.current = activeStyle;
+
+  // ── Switch style when darkMode changes ──────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -482,61 +491,8 @@ export default function MaplibreMap({
     }
   }, [selectedLocation, onLocationSelect]);
 
-  // ── Layer Switcher (Bright / Fiord only) ────────────────────────────────
-  const layers = [
-    { id: 'bright', label: 'Bright', Icon: Sun },
-    { id: 'fiord',  label: 'Fiord',  Icon: Moon },
-  ];
-
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: 320 }}>
-      {/* Layer Switcher */}
-      <div style={{
-        position: 'absolute',
-        top: 12,
-        left: 12,
-        zIndex: 10,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        padding: 3,
-        borderRadius: 12,
-        backgroundColor: darkMode ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
-        boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
-      }}>
-        {layers.map(layer => {
-          const isSelected = activeStyle === layer.id;
-          return (
-            <button
-              key={layer.id}
-              type="button"
-              onClick={() => setActiveStyle(layer.id)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '6px 12px',
-                borderRadius: 9,
-                border: 'none',
-                backgroundColor: isSelected ? 'var(--ndrs-blue, #2563eb)' : 'transparent',
-                color: isSelected ? '#ffffff' : (darkMode ? '#94a3b8' : '#475569'),
-                fontWeight: isSelected ? 800 : 600,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <layer.Icon size={13} />
-              <span>{layer.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Map Container */}
       <div
         ref={containerRef}
