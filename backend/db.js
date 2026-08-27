@@ -22,7 +22,7 @@ function resolveDbPath() {
   } catch {
     const fallback = path.join(__dirname, 'database.json');
     console.warn(
-      `⚠️  Cannot write to ${configured} (disk not mounted or permission denied).\n` +
+      `[WARNING] Cannot write to ${configured} (disk not mounted or permission denied).\n` +
       `   Falling back to ${fallback}.\n` +
       `   Data will NOT persist across deploys unless you add a Render persistent disk.`
     );
@@ -73,7 +73,7 @@ export async function seedSuperAdmin() {
       existingSuper.passwordHash = await bcrypt.hash(password, 12);
       existingSuper.updatedAt = new Date().toISOString();
       save();
-      console.log(`✅ Super admin credentials updated: ${email}`);
+      console.log(`[NDRS] Super admin credentials updated: ${email}`);
     }
   } else {
     const passwordHash = await bcrypt.hash(password, 12);
@@ -89,7 +89,7 @@ export async function seedSuperAdmin() {
       createdBy: 'system'
     });
     save();
-    console.log(`✅ Super admin seeded: ${email}`);
+    console.log(`[NDRS] Super admin seeded: ${email}`);
   }
 }
 

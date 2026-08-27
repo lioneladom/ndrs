@@ -226,6 +226,6 @@ const PORT = process.env.PORT || 5000;
 
 seedSuperAdmin().then(() => {
   httpServer.listen(PORT, () => {
-    console.log(`🚀 NDRS Backend v2 running on port ${PORT}`);
+    console.log(`[NDRS] Backend v2 running on port ${PORT}`);
   });
 });
